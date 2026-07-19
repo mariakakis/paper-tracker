@@ -1,0 +1,595 @@
+{
+  "last_updated": "2026-07-12T23:03:17.522031",
+  "papers": [
+    {
+      "name": "Andrii",
+      "deadline_date": "2026-07-17",
+      "deadline_notes": null,
+      "sections": [
+        {
+          "name": "Abstract",
+          "date_last_reviewed": "2026-06-28",
+          "days_since_last_review": 14,
+          "notes": null
+        },
+        {
+          "name": "Intro",
+          "date_last_reviewed": "2026-06-28",
+          "days_since_last_review": 14,
+          "notes": null
+        },
+        {
+          "name": "Related: HF Detection",
+          "date_last_reviewed": "2026-06-28",
+          "days_since_last_review": 14,
+          "notes": null
+        },
+        {
+          "name": "Related: Earbuds",
+          "date_last_reviewed": "2026-06-28",
+          "days_since_last_review": 14,
+          "notes": null
+        },
+        {
+          "name": "Related: Our Contrib",
+          "date_last_reviewed": "2026-06-28",
+          "days_since_last_review": 14,
+          "notes": null
+        },
+        {
+          "name": "Methods: Study Design",
+          "date_last_reviewed": "2026-07-05",
+          "days_since_last_review": 7,
+          "notes": null
+        },
+        {
+          "name": "Methods: Preprocessing and Features",
+          "date_last_reviewed": "2026-07-05",
+          "days_since_last_review": 7,
+          "notes": null
+        },
+        {
+          "name": "Methods: Features and Analyses",
+          "date_last_reviewed": "2026-07-05",
+          "days_since_last_review": 7,
+          "notes": null
+        },
+        {
+          "name": "Visuals",
+          "date_last_reviewed": "2026-07-08",
+          "days_since_last_review": 4,
+          "notes": null
+        },
+        {
+          "name": "Stats",
+          "date_last_reviewed": "2026-07-08",
+          "days_since_last_review": 4,
+          "notes": null
+        },
+        {
+          "name": "ML",
+          "date_last_reviewed": "2026-07-08",
+          "days_since_last_review": 4,
+          "notes": null
+        },
+        {
+          "name": "Discussion",
+          "date_last_reviewed": "2026-07-08",
+          "days_since_last_review": 4,
+          "notes": null
+        },
+        {
+          "name": "Conclusion",
+          "date_last_reviewed": "2026-07-08",
+          "days_since_last_review": 4,
+          "notes": null
+        }
+      ]
+    },
+    {
+      "name": "Ian PAT",
+      "deadline_date": "2026-05-01",
+      "deadline_notes": null,
+      "sections": [
+        {
+          "name": "Abstract",
+          "date_last_reviewed": null,
+          "days_since_last_review": null,
+          "notes": null
+        },
+        {
+          "name": "Intro",
+          "date_last_reviewed": "2026-04-21",
+          "days_since_last_review": 82,
+          "notes": null
+        },
+        {
+          "name": "Related Work",
+          "date_last_reviewed": "2026-03-28",
+          "days_since_last_review": 106,
+          "notes": null
+        },
+        {
+          "name": "Methods: Dataset",
+          "date_last_reviewed": "2026-03-28",
+          "days_since_last_review": 106,
+          "notes": null
+        },
+        {
+          "name": "Methods: Problem",
+          "date_last_reviewed": "2026-03-28",
+          "days_since_last_review": 106,
+          "notes": null
+        },
+        {
+          "name": "Methods: Preprocessing",
+          "date_last_reviewed": "2026-03-28",
+          "days_since_last_review": 106,
+          "notes": null
+        },
+        {
+          "name": "Methods: Model",
+          "date_last_reviewed": "2026-03-29",
+          "days_since_last_review": 105,
+          "notes": null
+        },
+        {
+          "name": "Methods: Evaluation",
+          "date_last_reviewed": "2026-03-29",
+          "days_since_last_review": 105,
+          "notes": null
+        },
+        {
+          "name": "Results",
+          "date_last_reviewed": null,
+          "days_since_last_review": null,
+          "notes": null
+        }
+      ]
+    },
+    {
+      "name": "You Zhi",
+      "deadline_date": "2026-09-10",
+      "deadline_notes": null,
+      "sections": [
+        {
+          "name": "Abstract",
+          "date_last_reviewed": null,
+          "days_since_last_review": null,
+          "notes": null
+        },
+        {
+          "name": "Intro",
+          "date_last_reviewed": "2026-07-06",
+          "days_since_last_review": 6,
+          "notes": null
+        },
+        {
+          "name": "Related Work",
+          "date_last_reviewed": null,
+          "days_since_last_review": null,
+          "notes": null
+        },
+        {
+          "name": "VR Design",
+          "date_last_reviewed": null,
+          "days_since_last_review": null,
+          "notes": null
+        },
+        {
+          "name": "Methods",
+          "date_last_reviewed": null,
+          "days_since_last_review": null,
+          "notes": null
+        },
+        {
+          "name": "Results1",
+          "date_last_reviewed": null,
+          "days_since_last_review": null,
+          "notes": null
+        },
+        {
+          "name": "Results2",
+          "date_last_reviewed": null,
+          "days_since_last_review": null,
+          "notes": null
+        },
+        {
+          "name": "Results3",
+          "date_last_reviewed": null,
+          "days_since_last_review": null,
+          "notes": null
+        },
+        {
+          "name": "Discussion",
+          "date_last_reviewed": null,
+          "days_since_last_review": null,
+          "notes": null
+        },
+        {
+          "name": "Conclusion",
+          "date_last_reviewed": null,
+          "days_since_last_review": null,
+          "notes": null
+        }
+      ]
+    },
+    {
+      "name": "Jebrenna",
+      "deadline_date": "2026-09-10",
+      "deadline_notes": null,
+      "sections": [
+        {
+          "name": "Abstract",
+          "date_last_reviewed": null,
+          "days_since_last_review": null,
+          "notes": null
+        },
+        {
+          "name": "Intro",
+          "date_last_reviewed": null,
+          "days_since_last_review": null,
+          "notes": null
+        },
+        {
+          "name": "Related Work",
+          "date_last_reviewed": null,
+          "days_since_last_review": null,
+          "notes": null
+        },
+        {
+          "name": "Workshop Methods",
+          "date_last_reviewed": "2026-07-09",
+          "days_since_last_review": 3,
+          "notes": null
+        },
+        {
+          "name": "Workshop Results 1",
+          "date_last_reviewed": "2026-07-12",
+          "days_since_last_review": 0,
+          "notes": null
+        },
+        {
+          "name": "Workshop Results 2",
+          "date_last_reviewed": "2026-07-12",
+          "days_since_last_review": 0,
+          "notes": null
+        },
+        {
+          "name": "Workshop Results 3",
+          "date_last_reviewed": "2026-07-12",
+          "days_since_last_review": 0,
+          "notes": null
+        },
+        {
+          "name": "Survey Methods",
+          "date_last_reviewed": "2026-07-11",
+          "days_since_last_review": 1,
+          "notes": null
+        },
+        {
+          "name": "Survey Results",
+          "date_last_reviewed": null,
+          "days_since_last_review": null,
+          "notes": null
+        },
+        {
+          "name": "Discussion",
+          "date_last_reviewed": null,
+          "days_since_last_review": null,
+          "notes": null
+        },
+        {
+          "name": "Conclusion",
+          "date_last_reviewed": null,
+          "days_since_last_review": null,
+          "notes": null
+        }
+      ]
+    },
+    {
+      "name": "Katherine Scribe Paper",
+      "deadline_date": "2026-09-10",
+      "deadline_notes": null,
+      "sections": [
+        {
+          "name": "Abstract",
+          "date_last_reviewed": null,
+          "days_since_last_review": null,
+          "notes": null
+        },
+        {
+          "name": "Introduction",
+          "date_last_reviewed": null,
+          "days_since_last_review": null,
+          "notes": null
+        },
+        {
+          "name": "Related Work",
+          "date_last_reviewed": null,
+          "days_since_last_review": null,
+          "notes": null
+        },
+        {
+          "name": "Study Design",
+          "date_last_reviewed": null,
+          "days_since_last_review": null,
+          "notes": null
+        },
+        {
+          "name": "Results: Roles",
+          "date_last_reviewed": null,
+          "days_since_last_review": null,
+          "notes": null
+        },
+        {
+          "name": "Results: Personas",
+          "date_last_reviewed": null,
+          "days_since_last_review": null,
+          "notes": null
+        },
+        {
+          "name": "Results: Experience Map",
+          "date_last_reviewed": null,
+          "days_since_last_review": null,
+          "notes": null
+        },
+        {
+          "name": "Discussion",
+          "date_last_reviewed": null,
+          "days_since_last_review": null,
+          "notes": null
+        },
+        {
+          "name": "Conclusion",
+          "date_last_reviewed": null,
+          "days_since_last_review": null,
+          "notes": null
+        }
+      ]
+    },
+    {
+      "name": "Dataset Paper",
+      "deadline_date": "2026-07-17",
+      "deadline_notes": null,
+      "sections": [
+        {
+          "name": "Abstract",
+          "date_last_reviewed": "2026-07-01",
+          "days_since_last_review": 11,
+          "notes": null
+        },
+        {
+          "name": "Intro",
+          "date_last_reviewed": "2026-07-01",
+          "days_since_last_review": 11,
+          "notes": null
+        },
+        {
+          "name": "Dataset: Participants",
+          "date_last_reviewed": "2026-07-01",
+          "days_since_last_review": 11,
+          "notes": null
+        },
+        {
+          "name": "Dataset: Hardware",
+          "date_last_reviewed": "2026-07-01",
+          "days_since_last_review": 11,
+          "notes": null
+        },
+        {
+          "name": "Dataset: Protocol",
+          "date_last_reviewed": "2026-07-01",
+          "days_since_last_review": 11,
+          "notes": null
+        },
+        {
+          "name": "Dataset: Processing",
+          "date_last_reviewed": "2026-07-02",
+          "days_since_last_review": 10,
+          "notes": null
+        },
+        {
+          "name": "Dataset: Limitations",
+          "date_last_reviewed": "2026-07-02",
+          "days_since_last_review": 10,
+          "notes": null
+        },
+        {
+          "name": "Data Records",
+          "date_last_reviewed": null,
+          "days_since_last_review": null,
+          "notes": null
+        },
+        {
+          "name": "Validation: Distributions",
+          "date_last_reviewed": null,
+          "days_since_last_review": null,
+          "notes": null
+        },
+        {
+          "name": "Validation: Unimodal",
+          "date_last_reviewed": null,
+          "days_since_last_review": null,
+          "notes": null
+        },
+        {
+          "name": "Validation: Multimodal",
+          "date_last_reviewed": null,
+          "days_since_last_review": null,
+          "notes": null
+        }
+      ]
+    },
+    {
+      "name": "Vaibhav PACMAN",
+      "deadline_date": "2026-09-10",
+      "deadline_notes": null,
+      "sections": [
+        {
+          "name": "Abstract",
+          "date_last_reviewed": "2026-02-01",
+          "days_since_last_review": 161,
+          "notes": null
+        },
+        {
+          "name": "Introduction",
+          "date_last_reviewed": "2026-02-01",
+          "days_since_last_review": 161,
+          "notes": null
+        },
+        {
+          "name": "Related Work",
+          "date_last_reviewed": "2026-02-01",
+          "days_since_last_review": 161,
+          "notes": null
+        },
+        {
+          "name": "Method: Motivation, Overview",
+          "date_last_reviewed": "2026-02-01",
+          "days_since_last_review": 161,
+          "notes": null
+        },
+        {
+          "name": "Method: Problem Formulation + Training",
+          "date_last_reviewed": "2026-02-01",
+          "days_since_last_review": 161,
+          "notes": null
+        },
+        {
+          "name": "Method: Deployment",
+          "date_last_reviewed": "2026-02-01",
+          "days_since_last_review": 161,
+          "notes": null
+        },
+        {
+          "name": "Overview",
+          "date_last_reviewed": "2026-02-01",
+          "days_since_last_review": 161,
+          "notes": null
+        },
+        {
+          "name": "Case Study 1: Background, Dataset, Motivation",
+          "date_last_reviewed": "2026-01-31",
+          "days_since_last_review": 162,
+          "notes": null
+        },
+        {
+          "name": "Case Study 1: Implementation, Results",
+          "date_last_reviewed": "2026-01-31",
+          "days_since_last_review": 162,
+          "notes": null
+        },
+        {
+          "name": "Case Study 2: Background, Dataset, Motivation",
+          "date_last_reviewed": "2026-01-31",
+          "days_since_last_review": 162,
+          "notes": null
+        },
+        {
+          "name": "Case Study 2: Implementation, Results",
+          "date_last_reviewed": "2026-01-31",
+          "days_since_last_review": 162,
+          "notes": null
+        },
+        {
+          "name": "Case Study 3: Background, Dataset, Motivation",
+          "date_last_reviewed": "2026-01-31",
+          "days_since_last_review": 162,
+          "notes": null
+        },
+        {
+          "name": "Case Study 3: Implementation, Results",
+          "date_last_reviewed": "2026-02-01",
+          "days_since_last_review": 161,
+          "notes": null
+        },
+        {
+          "name": "Discussion",
+          "date_last_reviewed": "2026-02-01",
+          "days_since_last_review": 161,
+          "notes": null
+        },
+        {
+          "name": "Conclusion",
+          "date_last_reviewed": "2026-01-31",
+          "days_since_last_review": 162,
+          "notes": null
+        },
+        {
+          "name": "Appendix",
+          "date_last_reviewed": "2026-02-01",
+          "days_since_last_review": 161,
+          "notes": null
+        }
+      ]
+    },
+    {
+      "name": "Samanvay Paper",
+      "deadline_date": "2026-09-10",
+      "deadline_notes": null,
+      "sections": [
+        {
+          "name": "Abstract",
+          "date_last_reviewed": "2025-12-12",
+          "days_since_last_review": 212,
+          "notes": null
+        },
+        {
+          "name": "Background",
+          "date_last_reviewed": "2025-12-12",
+          "days_since_last_review": 212,
+          "notes": null
+        },
+        {
+          "name": "Related Work",
+          "date_last_reviewed": "2025-12-12",
+          "days_since_last_review": 212,
+          "notes": null
+        },
+        {
+          "name": "Methods: Overview",
+          "date_last_reviewed": "2025-12-12",
+          "days_since_last_review": 212,
+          "notes": null
+        },
+        {
+          "name": "Methods: Dataset",
+          "date_last_reviewed": "2025-12-12",
+          "days_since_last_review": 212,
+          "notes": null
+        },
+        {
+          "name": "Methods: Topic Graph",
+          "date_last_reviewed": "2025-12-12",
+          "days_since_last_review": 212,
+          "notes": null
+        },
+        {
+          "name": "Methods: QA Generation",
+          "date_last_reviewed": "2025-12-12",
+          "days_since_last_review": 212,
+          "notes": null
+        },
+        {
+          "name": "Evaluation: Experiment Design",
+          "date_last_reviewed": "2025-12-12",
+          "days_since_last_review": 212,
+          "notes": null
+        },
+        {
+          "name": "Evaluation: Results",
+          "date_last_reviewed": "2025-12-12",
+          "days_since_last_review": 212,
+          "notes": null
+        },
+        {
+          "name": "Conclusion",
+          "date_last_reviewed": "2025-12-12",
+          "days_since_last_review": 212,
+          "notes": null
+        }
+      ]
+    }
+  ]
+}
