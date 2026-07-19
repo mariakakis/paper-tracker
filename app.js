@@ -1,5 +1,3 @@
-// Entry point, event listeners, theme, sort, export, reset
-
 document.addEventListener('DOMContentLoaded', () => {
     initApp();
 });
@@ -44,9 +42,7 @@ function setupEventListeners() {
 
     document.getElementById('sortDeadlineBtn').addEventListener('click', sortByDeadline);
 
-    document.getElementById('archiveBtn').addEventListener('click', () => {
-        showArchiveModal();
-    });
+    document.getElementById('archiveBtn').addEventListener('click', showArchiveModal);
 
     document.getElementById('addPaperBtn').addEventListener('click', addNewPaper);
     document.getElementById('resetExcelBtn').addEventListener('click', triggerResetConfirmation);

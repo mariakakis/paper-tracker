@@ -1,8 +1,12 @@
-// Rendering, drag-and-drop, modals, inline editing, notes, CRUD operations
-
-let dragSourceColumnIdx = null;
-
 let editingPaperIndex = null;
+
+const ICONS = {
+    menu: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="16" y2="6"></line><line x1="8" y1="10" x2="16" y2="10"></line><line x1="8" y1="14" x2="16" y2="14"></line><line x1="8" y1="18" x2="16" y2="18"></line></svg>',
+    edit: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>',
+    archive: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8v13H3V8"></path><path d="M1 3h22v5H1z"></path><line x1="10" y1="12" x2="14" y2="12"></line></svg>',
+    check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>',
+    add: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>'
+};
 
 function renderDashboard() {
     const container = document.getElementById('boardContainer');
@@ -12,211 +16,248 @@ function renderDashboard() {
     updateArchiveBadge();
 }
 
-function shouldShowCard(card, paperName) {
-    return true;
-}
-
 function renderPaperColumns(container) {
     state.papers.forEach((paper, pIdx) => {
-        const column = document.createElement('div');
-        column.className = 'board-column';
-        column.dataset.paperIndex = pIdx;
-
-        const header = document.createElement('div');
-        header.className = 'column-header';
-
-        const headerTop = document.createElement('div');
-        headerTop.className = 'column-header-top';
-
-        const title = document.createElement('h3');
-        title.textContent = paper.name;
-        title.title = paper.name;
-        enableInlineEdit(title, (newName) => {
-            state.papers[pIdx].name = newName;
-            saveToLocalStorage();
-            renderDashboard();
-        });
-
-        const headerActions = document.createElement('div');
-        headerActions.className = 'column-header-actions';
-
-        const dragHandle = document.createElement('span');
-        dragHandle.className = 'column-drag-handle';
-        dragHandle.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="16" y2="6"></line><line x1="8" y1="10" x2="16" y2="10"></line><line x1="8" y1="14" x2="16" y2="14"></line><line x1="8" y1="18" x2="16" y2="18"></line></svg>`;
-        dragHandle.title = 'Drag to reorder';
-
-        const paperNoteBtn = document.createElement('button');
-        paperNoteBtn.className = 'card-action-btn note-btn';
-        paperNoteBtn.title = paper.notes || 'Paper notes';
-        paperNoteBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>`;
-        if (paper.notes) {
-            const badge = document.createElement('span');
-            badge.className = 'note-badge-dot';
-            paperNoteBtn.appendChild(badge);
-        }
-        paperNoteBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            openPaperNoteEditor(pIdx);
-        });
-
-        headerActions.appendChild(paperNoteBtn);
-
-        const archivePaperBtn = document.createElement('button');
-        archivePaperBtn.className = 'card-action-btn';
-        archivePaperBtn.title = 'Archive paper';
-        archivePaperBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8v13H3V8"></path><path d="M1 3h22v5H1z"></path><line x1="10" y1="12" x2="14" y2="12"></line></svg>`;
-        archivePaperBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            archivePaper(pIdx);
-        });
-        headerActions.appendChild(archivePaperBtn);
-
-        dragHandle.draggable = true;
-        dragHandle.addEventListener('dragstart', (e) => {
-            e.stopPropagation();
-            const col = dragHandle.closest('.board-column');
-            col.classList.add('dragging');
-            e.dataTransfer.effectAllowed = 'move';
-            e.dataTransfer.setData('text/plain', 'column:' + col.dataset.paperIndex);
-        });
-        dragHandle.addEventListener('dragend', (e) => {
-            e.stopPropagation();
-            dragSourceColumnIdx = null;
-            const col = dragHandle.closest('.board-column');
-            if (col) col.classList.remove('dragging');
-            container.querySelectorAll('.board-column').forEach(c => c.classList.remove('drag-over'));
-        });
-        headerActions.appendChild(dragHandle);
-        headerTop.appendChild(title);
-        headerTop.appendChild(headerActions);
-        header.appendChild(headerTop);
-
-        const subheader = document.createElement('div');
-        subheader.className = 'column-subheader';
-
-        const deadInfo = getPaperDeadlineStatus(paper);
-
-        const deadlineEl = document.createElement('span');
-        deadlineEl.className = `deadline-indicator ${deadInfo.class}`;
-        deadlineEl.innerHTML = deadInfo.text;
-
-        const dateLike = document.createElement('span');
-        dateLike.className = 'card-date';
-        dateLike.innerHTML = formatDisplayDate(paper.deadline_date);
-
-        dateLike.style.cursor = 'pointer';
-        dateLike.addEventListener('click', (e) => {
-            e.stopPropagation();
-            showCustomDatePicker(dateLike, paper.deadline_date || getTodayString(), (val) => {
-                paper.deadline_date = val;
-                saveToLocalStorage();
-                renderDashboard();
-            });
-        });
-
-        let unstartedCount = 0;
-        let overdueCount = 0;
-        let needsReviewCount = 0;
-        let upToDateCount = 0;
-        paper.sections.forEach(sec => {
-            const urg = getSectionUrgency(sec);
-            if (urg === 'unstarted') unstartedCount++;
-            else if (urg === 'overdue') overdueCount++;
-            else if (urg === 'needsreview') needsReviewCount++;
-            else if (urg === 'uptodate') upToDateCount++;
-        });
-        const statusEl = document.createElement('span');
-        statusEl.className = 'column-status-summary';
-        const parts = [];
-        if (unstartedCount) parts.push(`<span class="status-dot-gray"></span>${unstartedCount}`);
-        if (overdueCount) parts.push(`<span class="status-dot-red"></span>${overdueCount}`);
-        if (needsReviewCount) parts.push(`<span class="status-dot-yellow"></span>${needsReviewCount}`);
-        if (upToDateCount) parts.push(`<span class="status-dot-green"></span>${upToDateCount}`);
-        statusEl.innerHTML = parts.join('') || '';
-
-        const leftGroup = document.createElement('div');
-        leftGroup.className = 'column-subheader-left';
-        leftGroup.appendChild(dateLike);
-        leftGroup.appendChild(deadlineEl);
-        subheader.appendChild(leftGroup);
-        subheader.appendChild(statusEl);
-        header.appendChild(subheader);
-        column.appendChild(header);
-
-        const cardsContainer = document.createElement('div');
-        cardsContainer.className = 'column-cards';
-        cardsContainer.dataset.paperIndex = pIdx;
-
-        cardsContainer.addEventListener('dragover', (e) => {
-            if (!e.dataTransfer.types.includes('text/plain')) return;
-            e.preventDefault();
-            e.dataTransfer.dropEffect = 'move';
-            cardsContainer.querySelectorAll('.kanban-card.drag-target').forEach(c => {
-                c.classList.remove('drag-target');
-                c.style.boxShadow = '';
-                c.style.background = '';
-            });
-            const cards = [...cardsContainer.querySelectorAll('.kanban-card:not(.dragging)')];
-            const afterCard = cards.find(card => {
-                const box = card.getBoundingClientRect();
-                return e.clientY < box.top + box.height / 2;
-            });
-            if (afterCard) {
-                afterCard.classList.add('drag-target');
-                afterCard.style.boxShadow = 'inset 0 3px 0 0 #818cf8, 0 0 0 2px rgba(129,140,248,0.3)';
-                afterCard.style.background = 'rgba(129,140,248,0.12)';
-            }
-        });
-
-        cardsContainer.addEventListener('drop', (e) => {
-            const dataStr = e.dataTransfer.getData('text/plain');
-            if (!dataStr || dataStr.startsWith('column:')) return;
-            e.preventDefault();
-
-            const data = JSON.parse(dataStr);
-            const sourcePaperIdx = parseInt(data.paperIndex);
-            const sourceSectionIdx = parseInt(data.sectionIndex);
-            const targetPaperIdx = parseInt(cardsContainer.dataset.paperIndex);
-            if (sourcePaperIdx !== targetPaperIdx) return;
-
-            const targetCard = cardsContainer.querySelector('.kanban-card.drag-target');
-            cardsContainer.querySelectorAll('.kanban-card.drag-target').forEach(c => {
-                c.classList.remove('drag-target');
-                c.style.boxShadow = '';
-                c.style.background = '';
-            });
-
-            const movingSection = state.papers[sourcePaperIdx].sections.splice(sourceSectionIdx, 1)[0];
-
-            if (targetCard) {
-                const cards = [...cardsContainer.querySelectorAll('.kanban-card:not(.dragging)')];
-                const targetIdx = cards.indexOf(targetCard);
-                state.papers[sourcePaperIdx].sections.splice(targetIdx, 0, movingSection);
-            } else {
-                state.papers[sourcePaperIdx].sections.push(movingSection);
-            }
-            saveToLocalStorage();
-            renderDashboard();
-        });
-
-        paper.sections.forEach((section, sIdx) => {
-            if (shouldShowCard(section, paper.name)) {
-                const cardEl = createCardElement(section, pIdx, sIdx);
-                cardsContainer.appendChild(cardEl);
-            }
-        });
-
-        column.appendChild(cardsContainer);
-
-        const addBtn = document.createElement('button');
-        addBtn.className = 'add-card-btn';
-        addBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg> Add Section`;
-        addBtn.addEventListener('click', () => createNewSection(pIdx));
-        column.appendChild(addBtn);
-
+        const column = createColumnElement(paper, pIdx);
         container.appendChild(column);
     });
+    setupColumnDragDrop(container);
+}
 
+function createColumnElement(paper, pIdx) {
+    const column = document.createElement('div');
+    column.className = 'board-column';
+    column.dataset.paperIndex = pIdx;
+
+    column.appendChild(createColumnWithSubheader(paper, pIdx));
+
+    const cardsContainer = createCardsContainer(paper, pIdx);
+    column.appendChild(cardsContainer);
+
+    const addBtn = document.createElement('button');
+    addBtn.className = 'add-card-btn';
+    addBtn.innerHTML = ICONS.add + ' Add Section';
+    addBtn.addEventListener('click', () => createNewSection(pIdx));
+    column.appendChild(addBtn);
+
+    return column;
+}
+
+function createColumnWithSubheader(paper, pIdx) {
+    const header = document.createElement('div');
+    header.className = 'column-header';
+
+    const headerTop = document.createElement('div');
+    headerTop.className = 'column-header-top';
+
+    const title = document.createElement('h3');
+    title.textContent = paper.name;
+    title.title = paper.name;
+    enableInlineEdit(title, (newName) => {
+        state.papers[pIdx].name = newName;
+        saveToLocalStorage();
+        renderDashboard();
+    });
+
+    const headerActions = document.createElement('div');
+    headerActions.className = 'column-header-actions';
+
+    const noteBtn = createPaperNoteButton(pIdx);
+    headerActions.appendChild(noteBtn);
+
+    const archiveBtn = createArchivePaperButton(pIdx);
+    headerActions.appendChild(archiveBtn);
+
+    const dragHandle = createDragHandle(pIdx);
+    headerActions.appendChild(dragHandle);
+
+    headerTop.appendChild(title);
+    headerTop.appendChild(headerActions);
+    header.appendChild(headerTop);
+
+    const subheader = createColumnSubheader(paper);
+    header.appendChild(subheader);
+
+    return header;
+}
+
+function createPaperNoteButton(pIdx) {
+    const paper = state.papers[pIdx];
+    const btn = document.createElement('button');
+    btn.className = 'card-action-btn note-btn';
+    btn.title = paper.notes || 'Paper notes';
+    btn.innerHTML = ICONS.edit;
+    if (paper.notes) {
+        const badge = document.createElement('span');
+        badge.className = 'note-badge-dot';
+        btn.appendChild(badge);
+    }
+    btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openPaperNoteEditor(pIdx);
+    });
+    return btn;
+}
+
+function createArchivePaperButton(pIdx) {
+    const btn = document.createElement('button');
+    btn.className = 'card-action-btn';
+    btn.title = 'Archive paper';
+    btn.innerHTML = ICONS.archive;
+    btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        archivePaper(pIdx);
+    });
+    return btn;
+}
+
+function createDragHandle(pIdx) {
+    const handle = document.createElement('span');
+    handle.className = 'column-drag-handle';
+    handle.innerHTML = ICONS.menu;
+    handle.title = 'Drag to reorder';
+    handle.draggable = true;
+
+    handle.addEventListener('dragstart', (e) => {
+        e.stopPropagation();
+        const col = handle.closest('.board-column');
+        col.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', 'column:' + col.dataset.paperIndex);
+    });
+
+    handle.addEventListener('dragend', (e) => {
+        e.stopPropagation();
+        const col = handle.closest('.board-column');
+        if (col) col.classList.remove('dragging');
+        document.querySelectorAll('.board-column').forEach(c => c.classList.remove('drag-over'));
+    });
+
+    return handle;
+}
+
+function createColumnSubheader(paper) {
+    const subheader = document.createElement('div');
+    subheader.className = 'column-subheader';
+
+    const deadInfo = getPaperDeadlineStatus(paper);
+
+    const deadlineEl = document.createElement('span');
+    deadlineEl.className = `deadline-indicator ${deadInfo.class}`;
+    deadlineEl.innerHTML = deadInfo.text;
+
+    const dateLike = document.createElement('span');
+    dateLike.className = 'card-date';
+    dateLike.innerHTML = formatDisplayDate(paper.deadline_date);
+    dateLike.style.cursor = 'pointer';
+    dateLike.addEventListener('click', (e) => {
+        e.stopPropagation();
+        showCustomDatePicker(dateLike, paper.deadline_date || getTodayString(), (val) => {
+            paper.deadline_date = val;
+            saveToLocalStorage();
+            renderDashboard();
+        });
+    });
+
+    let unstartedCount = 0, overdueCount = 0, needsReviewCount = 0, upToDateCount = 0;
+    paper.sections.forEach(sec => {
+        const urg = getSectionUrgency(sec);
+        if (urg === 'unstarted') unstartedCount++;
+        else if (urg === 'overdue') overdueCount++;
+        else if (urg === 'needsreview') needsReviewCount++;
+        else if (urg === 'uptodate') upToDateCount++;
+    });
+
+    const statusEl = document.createElement('span');
+    statusEl.className = 'column-status-summary';
+    const parts = [];
+    if (unstartedCount) parts.push(`<span class="status-dot-gray"></span>${unstartedCount}`);
+    if (overdueCount) parts.push(`<span class="status-dot-red"></span>${overdueCount}`);
+    if (needsReviewCount) parts.push(`<span class="status-dot-yellow"></span>${needsReviewCount}`);
+    if (upToDateCount) parts.push(`<span class="status-dot-green"></span>${upToDateCount}`);
+    statusEl.innerHTML = parts.join('') || '';
+
+    const leftGroup = document.createElement('div');
+    leftGroup.className = 'column-subheader-left';
+    leftGroup.appendChild(dateLike);
+    leftGroup.appendChild(deadlineEl);
+    subheader.appendChild(leftGroup);
+    subheader.appendChild(statusEl);
+
+    return subheader;
+}
+
+function createCardsContainer(paper, pIdx) {
+    const cardsContainer = document.createElement('div');
+    cardsContainer.className = 'column-cards';
+    cardsContainer.dataset.paperIndex = pIdx;
+
+    setupCardsDragDrop(cardsContainer);
+
+    paper.sections.forEach((section, sIdx) => {
+        const cardEl = createCardElement(section, pIdx, sIdx);
+        cardsContainer.appendChild(cardEl);
+    });
+
+    return cardsContainer;
+}
+
+function setupCardsDragDrop(cardsContainer) {
+    cardsContainer.addEventListener('dragover', (e) => {
+        if (!e.dataTransfer.types.includes('text/plain')) return;
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        clearDragTargets(cardsContainer);
+
+        const cards = [...cardsContainer.querySelectorAll('.kanban-card:not(.dragging)')];
+        const afterCard = cards.find(card => {
+            const box = card.getBoundingClientRect();
+            return e.clientY < box.top + box.height / 2;
+        });
+        if (afterCard) {
+            afterCard.classList.add('drag-target');
+            afterCard.style.boxShadow = 'inset 0 3px 0 0 #818cf8, 0 0 0 2px rgba(129,140,248,0.3)';
+            afterCard.style.background = 'rgba(129,140,248,0.12)';
+        }
+    });
+
+    cardsContainer.addEventListener('drop', (e) => {
+        const dataStr = e.dataTransfer.getData('text/plain');
+        if (!dataStr || dataStr.startsWith('column:')) return;
+        e.preventDefault();
+
+        const data = JSON.parse(dataStr);
+        const sourcePaperIdx = parseInt(data.paperIndex);
+        const sourceSectionIdx = parseInt(data.sectionIndex);
+        const targetPaperIdx = parseInt(cardsContainer.dataset.paperIndex);
+        if (sourcePaperIdx !== targetPaperIdx) return;
+
+        const targetCard = cardsContainer.querySelector('.kanban-card.drag-target');
+        clearDragTargets(cardsContainer);
+
+        const movingSection = state.papers[sourcePaperIdx].sections.splice(sourceSectionIdx, 1)[0];
+
+        if (targetCard) {
+            const cards = [...cardsContainer.querySelectorAll('.kanban-card:not(.dragging)')];
+            const targetIdx = cards.indexOf(targetCard);
+            state.papers[sourcePaperIdx].sections.splice(targetIdx, 0, movingSection);
+        } else {
+            state.papers[sourcePaperIdx].sections.push(movingSection);
+        }
+        saveToLocalStorage();
+        renderDashboard();
+    });
+}
+
+function clearDragTargets(container) {
+    container.querySelectorAll('.kanban-card.drag-target').forEach(c => {
+        c.classList.remove('drag-target');
+        c.style.boxShadow = '';
+        c.style.background = '';
+    });
+}
+
+function setupColumnDragDrop(container) {
     container.addEventListener('dragover', (e) => {
         if (!e.dataTransfer.types.includes('text/plain')) return;
         e.preventDefault();
@@ -230,9 +271,7 @@ function renderPaperColumns(container) {
             const rect = c.getBoundingClientRect();
             return e.clientX < rect.left + rect.width / 2;
         });
-        if (afterEl) {
-            afterEl.classList.add('drag-over');
-        }
+        if (afterEl) afterEl.classList.add('drag-over');
     });
 
     container.addEventListener('drop', (e) => {
@@ -268,6 +307,7 @@ function createCardElement(section, pIdx, sIdx) {
             sectionIndex: card.dataset.sectionIndex
         }));
     });
+
     card.addEventListener('dragend', () => {
         card.classList.remove('dragging');
         document.querySelectorAll('.kanban-card.drag-target').forEach(c => {
@@ -278,8 +318,7 @@ function createCardElement(section, pIdx, sIdx) {
     });
 
     const urgency = getSectionUrgency(section);
-    const sectionNameLower = section.name.toLowerCase();
-    const isDeadline = sectionNameLower.includes('deadline');
+    const isDeadline = section.name.toLowerCase().includes('deadline');
     const elapsed = calculateDaysElapsed(section.date_last_reviewed, isDeadline);
 
     const headerRow = document.createElement('div');
@@ -294,48 +333,50 @@ function createCardElement(section, pIdx, sIdx) {
         renderDashboard();
     });
     headerRow.appendChild(title);
-
-    let badgeText = '';
-    let badgeClass = '';
-
-    if (isDeadline) {
-        badgeClass = urgency === 'overdue' ? 'status-red' : 'status-green';
-        if (!section.date_last_reviewed) {
-            badgeText = 'No Deadline';
-            badgeClass = 'status-gray';
-        } else if (elapsed >= 0) {
-            badgeText = `${elapsed}d left`;
-        } else {
-            badgeText = `${Math.abs(elapsed)}d overdue`;
-        }
-    } else {
-        if (urgency === 'unstarted') {
-            badgeText = '';
-            badgeClass = '';
-        } else if (urgency === 'uptodate') {
-            badgeText = `${elapsed}d`;
-            badgeClass = 'status-green';
-        } else if (urgency === 'needsreview') {
-            badgeText = `${elapsed}d`;
-            badgeClass = 'status-yellow';
-        } else {
-            badgeText = `${elapsed}d`;
-            badgeClass = 'status-red';
-        }
-    }
-
     card.appendChild(headerRow);
 
     const footer = document.createElement('div');
     footer.className = 'card-footer';
 
-    if (badgeText) {
+    const badgeInfo = getCardBadgeInfo(section, urgency, isDeadline, elapsed);
+    if (badgeInfo.text) {
         const badge = document.createElement('span');
-        badge.className = `card-badge ${badgeClass}`;
-        badge.textContent = badgeText;
+        badge.className = `card-badge ${badgeInfo.className}`;
+        badge.textContent = badgeInfo.text;
         footer.appendChild(badge);
     }
 
+    const dateArea = createCardDateArea(section, pIdx, sIdx);
+    footer.appendChild(dateArea);
+
+    const cardActions = createCardActions(pIdx, sIdx);
+    footer.appendChild(cardActions);
+    card.appendChild(footer);
+
+    return card;
+}
+
+function getCardBadgeInfo(section, urgency, isDeadline, elapsed) {
+    if (isDeadline) {
+        let cls = urgency === 'overdue' ? 'status-red' : 'status-green';
+        if (!section.date_last_reviewed) {
+            return { text: 'No Deadline', className: 'status-gray' };
+        } else if (elapsed >= 0) {
+            return { text: `${elapsed}d left`, className: cls };
+        } else {
+            return { text: `${Math.abs(elapsed)}d overdue`, className: 'status-red' };
+        }
+    } else {
+        if (urgency === 'unstarted') {
+            return { text: '', className: '' };
+        } else {
+            const cls = urgency === 'uptodate' ? 'status-green' : (urgency === 'needsreview' ? 'status-yellow' : 'status-red');
+            return { text: `${elapsed}d`, className: cls };
+        }
+    }
+}
+
+function createCardDateArea(section, pIdx, sIdx) {
     const dateArea = document.createElement('div');
     dateArea.className = 'card-date';
     dateArea.style.cursor = 'pointer';
@@ -348,15 +389,17 @@ function createCardElement(section, pIdx, sIdx) {
             renderDashboard();
         });
     });
-    footer.appendChild(dateArea);
+    return dateArea;
+}
 
-    const cardActions = document.createElement('div');
-    cardActions.className = 'card-actions';
+function createCardActions(pIdx, sIdx) {
+    const group = document.createElement('div');
+    group.className = 'card-actions';
 
     const reviewBtn = document.createElement('button');
     reviewBtn.className = 'card-action-btn review-btn';
     reviewBtn.title = 'Mark as reviewed today';
-    reviewBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+    reviewBtn.innerHTML = ICONS.check;
     reviewBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         quickReviewToday(pIdx, sIdx, reviewBtn);
@@ -364,8 +407,9 @@ function createCardElement(section, pIdx, sIdx) {
 
     const noteBtn = document.createElement('button');
     noteBtn.className = 'card-action-btn note-btn';
+    const section = state.papers[pIdx].sections[sIdx];
     noteBtn.title = section.notes || 'Add a note';
-    noteBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>`;
+    noteBtn.innerHTML = ICONS.edit;
     if (section.notes) {
         const badge = document.createElement('span');
         badge.className = 'note-badge-dot';
@@ -376,13 +420,9 @@ function createCardElement(section, pIdx, sIdx) {
         openNoteEditor(pIdx, sIdx);
     });
 
-    cardActions.appendChild(reviewBtn);
-    cardActions.appendChild(noteBtn);
-    footer.appendChild(cardActions);
-
-    card.appendChild(footer);
-
-    return card;
+    group.appendChild(reviewBtn);
+    group.appendChild(noteBtn);
+    return group;
 }
 
 function enableInlineEdit(el, onSave) {
@@ -402,7 +442,6 @@ function enableInlineEdit(el, onSave) {
         const finish = () => {
             const newVal = input.value.trim() || currentText;
             onSave(newVal);
-            el.textContent = newVal;
             input.replaceWith(el);
         };
 
@@ -418,11 +457,9 @@ function enableInlineEdit(el, onSave) {
     });
 }
 
-function openNoteEditor(pIdx, sIdx) {
+function createNoteEditorOverlay(titleText, initialNotes, placeholder, onSave, onDelete) {
     const existing = document.querySelector('.note-editor-overlay');
     if (existing) existing.remove();
-
-    const section = state.papers[pIdx].sections[sIdx];
 
     const overlay = document.createElement('div');
     overlay.className = 'note-editor-overlay';
@@ -432,40 +469,37 @@ function openNoteEditor(pIdx, sIdx) {
 
     const title = document.createElement('div');
     title.className = 'note-editor-title';
-    const paperName = state.papers[pIdx].name;
-    title.textContent = `Notes: ${paperName} > ${section.name}`;
+    title.textContent = titleText;
     popup.appendChild(title);
 
     const textarea = document.createElement('textarea');
-    textarea.value = section.notes || '';
-    textarea.placeholder = 'Add a note...';
+    textarea.value = initialNotes || '';
+    textarea.placeholder = placeholder;
     textarea.rows = 4;
 
     const btnRow = document.createElement('div');
     btnRow.className = 'note-editor-actions';
 
+    const deleteBtn = document.createElement('button');
+    deleteBtn.textContent = 'Delete';
+    deleteBtn.className = 'modal-btn danger-outline';
+    deleteBtn.addEventListener('click', () => {
+        overlay.remove();
+        if (onDelete) onDelete();
+    });
+
     const saveBtn = document.createElement('button');
     saveBtn.textContent = 'Save';
     saveBtn.className = 'modal-btn primary';
     saveBtn.addEventListener('click', () => {
-        section.notes = textarea.value.trim() || null;
-        saveToLocalStorage();
+        onSave(textarea.value.trim() || null);
         overlay.remove();
-        renderDashboard();
     });
 
     const cancelBtn = document.createElement('button');
     cancelBtn.textContent = 'Cancel';
     cancelBtn.className = 'modal-btn secondary';
     cancelBtn.addEventListener('click', () => overlay.remove());
-
-    const deleteBtn = document.createElement('button');
-    deleteBtn.textContent = 'Delete Section';
-    deleteBtn.className = 'modal-btn danger-outline';
-    deleteBtn.addEventListener('click', () => {
-        overlay.remove();
-        triggerDeleteConfirmation(pIdx, sIdx);
-    });
 
     const leftGroup = document.createElement('div');
     leftGroup.className = 'note-editor-left-btn';
@@ -491,90 +525,88 @@ function openNoteEditor(pIdx, sIdx) {
     overlay.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') overlay.remove();
     });
+}
+
+function openNoteEditor(pIdx, sIdx) {
+    const section = state.papers[pIdx].sections[sIdx];
+    const titleText = `Notes: ${state.papers[pIdx].name} > ${section.name}`;
+    createNoteEditorOverlay(
+        titleText,
+        section.notes,
+        'Add a note...',
+        (val) => {
+            section.notes = val;
+            saveToLocalStorage();
+            renderDashboard();
+        },
+        () => {
+            triggerDeleteConfirmation(pIdx, sIdx);
+            renderDashboard();
+        }
+    );
 }
 
 function openPaperNoteEditor(pIdx) {
-    const existing = document.querySelector('.note-editor-overlay');
-    if (existing) existing.remove();
-
     const paper = state.papers[pIdx];
-
-    const overlay = document.createElement('div');
-    overlay.className = 'note-editor-overlay';
-
-    const popup = document.createElement('div');
-    popup.className = 'note-editor-popup';
-
-    const title = document.createElement('div');
-    title.className = 'note-editor-title';
-    title.textContent = `Notes: ${paper.name}`;
-    popup.appendChild(title);
-
-    const textarea = document.createElement('textarea');
-    textarea.value = paper.notes || '';
-    textarea.placeholder = 'Add a note about this paper...';
-    textarea.rows = 4;
-
-    const btnRow = document.createElement('div');
-    btnRow.className = 'note-editor-actions';
-
-    const saveBtn = document.createElement('button');
-    saveBtn.textContent = 'Save';
-    saveBtn.className = 'modal-btn primary';
-    saveBtn.addEventListener('click', () => {
-        paper.notes = textarea.value.trim() || null;
-        saveToLocalStorage();
-        overlay.remove();
-        renderDashboard();
-    });
-
-    const cancelBtn = document.createElement('button');
-    cancelBtn.textContent = 'Cancel';
-    cancelBtn.className = 'modal-btn secondary';
-    cancelBtn.addEventListener('click', () => overlay.remove());
-
-    const deleteBtn = document.createElement('button');
-    deleteBtn.textContent = 'Delete Paper';
-    deleteBtn.className = 'modal-btn danger-outline';
-    deleteBtn.addEventListener('click', () => {
-        overlay.remove();
-        triggerDeletePaperConfirmation(pIdx);
-    });
-
-    const leftGroup = document.createElement('div');
-    leftGroup.className = 'note-editor-left-btn';
-    leftGroup.appendChild(deleteBtn);
-
-    const rightGroup = document.createElement('div');
-    rightGroup.className = 'note-editor-right-btns';
-    rightGroup.appendChild(saveBtn);
-    rightGroup.appendChild(cancelBtn);
-
-    btnRow.appendChild(leftGroup);
-    btnRow.appendChild(rightGroup);
-    popup.appendChild(textarea);
-    popup.appendChild(btnRow);
-    overlay.appendChild(popup);
-    document.body.appendChild(overlay);
-
-    textarea.focus();
-
-    overlay.addEventListener('click', (e) => {
-        if (e.target === overlay) overlay.remove();
-    });
-    overlay.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') overlay.remove();
-    });
+    const titleText = `Notes: ${paper.name}`;
+    createNoteEditorOverlay(
+        titleText,
+        paper.notes,
+        'Add a note about this paper...',
+        (val) => {
+            paper.notes = val;
+            saveToLocalStorage();
+            renderDashboard();
+        },
+        () => {
+            triggerDeletePaperConfirmation(pIdx);
+            renderDashboard();
+        }
+    );
 }
 
-function openPaperEditor(pIdx) {
-    editingPaperIndex = pIdx;
-    const paper = state.papers[pIdx];
+function openCardEditor(pIdx, sIdx) {
+    editingCard.paperIndex = pIdx;
+    editingCard.sectionIndex = sIdx;
 
-    document.getElementById('editPaperName').value = paper.name;
-    const dateInput = document.getElementById('editPaperDeadlineDate');
-    dateInput.value = paper.deadline_date || '';
-    document.getElementById('paperModal').showModal();
+    const paper = state.papers[pIdx];
+    const isNew = editingCard.isNew;
+    const section = isNew ? null : paper.sections[sIdx];
+
+    document.getElementById('modalTitle').textContent = isNew
+        ? `New Section for ${paper.name}`
+        : `Edit Section: ${section.name}`;
+
+    document.getElementById('deleteCardBtn').style.display = isNew ? 'none' : '';
+    document.getElementById('closeModalBtn').style.display = isNew ? 'none' : '';
+    document.getElementById('editSectionName').value = isNew ? '' : section.name;
+
+    document.getElementById('cardModal').showModal();
+}
+
+function saveCardEdits() {
+    const pIdx = editingCard.paperIndex;
+    if (pIdx === null) return;
+    const name = document.getElementById('editSectionName').value.trim();
+
+    if (editingCard.isNew) {
+        const sIdx = state.papers[pIdx].sections.length;
+        editingCard.sectionIndex = sIdx;
+        state.papers[pIdx].sections.push({
+            name,
+            date_last_reviewed: null,
+            notes: ""
+        });
+    } else {
+        const sIdx = editingCard.sectionIndex;
+        if (sIdx === null) return;
+        state.papers[pIdx].sections[sIdx].name = name;
+    }
+
+    editingCard.isNew = false;
+    saveToLocalStorage();
+    renderDashboard();
+    document.getElementById('cardModal').close();
 }
 
 function savePaperEdits() {
@@ -605,23 +637,6 @@ function addNewPaper() {
     document.getElementById('paperModal').showModal();
 }
 
-function triggerDeletePaperConfirmation(pIdx) {
-    if (pIdx === null) return;
-    const paperName = state.papers[pIdx].name;
-
-    document.getElementById('paperModal').close();
-
-    showConfirmation(
-        'Delete Paper?',
-        `Are you sure you want to delete "${paperName}" and all its sections? This cannot be undone.`,
-        () => {
-            state.papers.splice(pIdx, 1);
-            saveToLocalStorage();
-            renderDashboard();
-        }
-    );
-}
-
 function quickReviewToday(pIdx, sIdx, btnEl) {
     const section = state.papers[pIdx].sections[sIdx];
     section.date_last_reviewed = getTodayString();
@@ -633,52 +648,9 @@ function quickReviewToday(pIdx, sIdx, btnEl) {
     }, 400);
 }
 
-function openCardEditor(pIdx, sIdx) {
-    editingCard.paperIndex = pIdx;
-    editingCard.sectionIndex = sIdx;
-
-    const paper = state.papers[pIdx];
-    const isNew = editingCard.isNew;
-    const section = isNew ? null : paper.sections[sIdx];
-
-    if (isNew) {
-        document.getElementById('modalTitle').textContent = `New Section for ${paper.name}`;
-    } else {
-        document.getElementById('modalTitle').textContent = `Edit Section: ${section.name}`;
-    }
-
-    document.getElementById('deleteCardBtn').style.display = isNew ? 'none' : '';
-    document.getElementById('closeModalBtn').style.display = isNew ? 'none' : '';
-
-    document.getElementById('editSectionName').value = isNew ? '' : section.name;
-
-    document.getElementById('cardModal').showModal();
-}
-
-function saveCardEdits() {
-    const pIdx = editingCard.paperIndex;
-
-    if (pIdx === null) return;
-    const name = document.getElementById('editSectionName').value.trim();
-
-    if (editingCard.isNew) {
-        const sIdx = state.papers[pIdx].sections.length;
-        editingCard.sectionIndex = sIdx;
-        state.papers[pIdx].sections.push({
-            name,
-            date_last_reviewed: null,
-            notes: ""
-        });
-    } else {
-        const sIdx = editingCard.sectionIndex;
-        if (sIdx === null) return;
-        state.papers[pIdx].sections[sIdx].name = name;
-    }
-
-    editingCard.isNew = false;
-    saveToLocalStorage();
-    renderDashboard();
-    document.getElementById('cardModal').close();
+function createNewSection(pIdx) {
+    editingCard.isNew = true;
+    openCardEditor(pIdx, null);
 }
 
 function triggerDeleteConfirmation(pIdx, sIdx) {
@@ -699,9 +671,21 @@ function triggerDeleteConfirmation(pIdx, sIdx) {
     );
 }
 
-function createNewSection(pIdx) {
-    editingCard.isNew = true;
-    openCardEditor(pIdx, null);
+function triggerDeletePaperConfirmation(pIdx) {
+    if (pIdx === null) return;
+    const paperName = state.papers[pIdx].name;
+
+    document.getElementById('paperModal').close();
+
+    showConfirmation(
+        'Delete Paper?',
+        `Are you sure you want to delete "${paperName}" and all its sections? This cannot be undone.`,
+        () => {
+            state.papers.splice(pIdx, 1);
+            saveToLocalStorage();
+            renderDashboard();
+        }
+    );
 }
 
 function archivePaper(pIdx) {
@@ -752,13 +736,10 @@ function showArchiveModal() {
 
     const header = document.createElement('div');
     header.className = 'modal-header';
-
     const titleArea = document.createElement('div');
     titleArea.className = 'modal-title-area';
-
     const title = document.createElement('h2');
     title.textContent = 'Archived Papers';
-
     titleArea.appendChild(title);
 
     const closeBtn = document.createElement('button');
@@ -782,23 +763,14 @@ function showArchiveModal() {
     } else {
         state.archivedPapers.forEach((paper, idx) => {
             const row = document.createElement('div');
-            row.style.display = 'flex';
-            row.style.alignItems = 'center';
-            row.style.gap = '0.75rem';
-            row.style.padding = '0.5rem 0.75rem';
-            row.style.border = '1px solid var(--border-color)';
-            row.style.borderRadius = 'var(--radius-sm)';
-            row.style.marginBottom = '0.5rem';
-            row.style.background = 'var(--bg-input)';
+            row.className = 'archive-row';
 
             const name = document.createElement('span');
-            name.style.flex = '1';
-            name.style.fontWeight = '600';
+            name.className = 'archive-row-name';
             name.textContent = paper.name;
 
             const deadline = document.createElement('span');
-            deadline.style.color = 'var(--text-secondary)';
-            deadline.style.fontSize = '0.8rem';
+            deadline.className = 'archive-row-deadline';
             deadline.textContent = paper.deadline_date ? formatDisplayDate(paper.deadline_date) : 'No deadline';
 
             const restoreBtn = document.createElement('button');

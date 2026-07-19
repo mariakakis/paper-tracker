@@ -1,6 +1,5 @@
-// Custom date picker and calendar view modal
-
 let pickerOverlay = null;
+let calTooltipEl = null;
 
 function showCustomDatePicker(anchor, currentDate, onSelect) {
     dismissDatePicker();
@@ -120,8 +119,6 @@ function dismissDatePicker() {
     }
 }
 
-let calTooltipEl = null;
-
 function showCalTooltip(anchor, papers) {
     hideCalTooltip();
     const el = document.createElement('div');
@@ -219,7 +216,7 @@ function showCalendarView() {
                 cell.dataset.papers = deadlineMap[dateStr].join('\n');
                 const dotsRow = document.createElement('div');
                 dotsRow.className = 'cal-dots-row';
-                deadlineMap[dateStr].forEach(name => {
+                deadlineMap[dateStr].forEach(() => {
                     const dot = document.createElement('span');
                     dot.className = 'cal-dot';
                     dotsRow.appendChild(dot);
