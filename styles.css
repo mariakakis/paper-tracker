@@ -825,6 +825,17 @@ body.light-theme .moon-icon { display: block; }
     box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
 }
 
+.kanban-card.dragging {
+    opacity: 0.4;
+    transform: scale(0.98);
+    border-style: dashed;
+}
+
+.kanban-card.drag-over {
+    box-shadow: inset 0 3px 0 0 #818cf8, 0 0 0 2px rgba(129, 140, 248, 0.3) !important;
+    background: rgba(129, 140, 248, 0.12) !important;
+}
+
 
 .card-header-row {
     display: flex;

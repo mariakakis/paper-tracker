@@ -21,7 +21,6 @@ function renderPaperColumns(container) {
         const column = document.createElement('div');
         column.className = 'board-column';
         column.dataset.paperIndex = pIdx;
-        column.draggable = true;
 
         const header = document.createElement('div');
         header.className = 'column-header';
@@ -72,6 +71,21 @@ function renderPaperColumns(container) {
         });
         headerActions.appendChild(archivePaperBtn);
 
+        dragHandle.draggable = true;
+        dragHandle.addEventListener('dragstart', (e) => {
+            e.stopPropagation();
+            const col = dragHandle.closest('.board-column');
+            col.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', 'column:' + col.dataset.paperIndex);
+        });
+        dragHandle.addEventListener('dragend', (e) => {
+            e.stopPropagation();
+            dragSourceColumnIdx = null;
+            const col = dragHandle.closest('.board-column');
+            if (col) col.classList.remove('dragging');
+            container.querySelectorAll('.board-column').forEach(c => c.classList.remove('drag-over'));
+        });
         headerActions.appendChild(dragHandle);
         headerTop.appendChild(title);
         headerTop.appendChild(headerActions);
@@ -133,6 +147,58 @@ function renderPaperColumns(container) {
         cardsContainer.className = 'column-cards';
         cardsContainer.dataset.paperIndex = pIdx;
 
+        cardsContainer.addEventListener('dragover', (e) => {
+            if (!e.dataTransfer.types.includes('text/plain')) return;
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            cardsContainer.querySelectorAll('.kanban-card.drag-target').forEach(c => {
+                c.classList.remove('drag-target');
+                c.style.boxShadow = '';
+                c.style.background = '';
+            });
+            const cards = [...cardsContainer.querySelectorAll('.kanban-card:not(.dragging)')];
+            const afterCard = cards.find(card => {
+                const box = card.getBoundingClientRect();
+                return e.clientY < box.top + box.height / 2;
+            });
+            if (afterCard) {
+                afterCard.classList.add('drag-target');
+                afterCard.style.boxShadow = 'inset 0 3px 0 0 #818cf8, 0 0 0 2px rgba(129,140,248,0.3)';
+                afterCard.style.background = 'rgba(129,140,248,0.12)';
+            }
+        });
+
+        cardsContainer.addEventListener('drop', (e) => {
+            const dataStr = e.dataTransfer.getData('text/plain');
+            if (!dataStr || dataStr.startsWith('column:')) return;
+            e.preventDefault();
+
+            const data = JSON.parse(dataStr);
+            const sourcePaperIdx = parseInt(data.paperIndex);
+            const sourceSectionIdx = parseInt(data.sectionIndex);
+            const targetPaperIdx = parseInt(cardsContainer.dataset.paperIndex);
+            if (sourcePaperIdx !== targetPaperIdx) return;
+
+            const targetCard = cardsContainer.querySelector('.kanban-card.drag-target');
+            cardsContainer.querySelectorAll('.kanban-card.drag-target').forEach(c => {
+                c.classList.remove('drag-target');
+                c.style.boxShadow = '';
+                c.style.background = '';
+            });
+
+            const movingSection = state.papers[sourcePaperIdx].sections.splice(sourceSectionIdx, 1)[0];
+
+            if (targetCard) {
+                const cards = [...cardsContainer.querySelectorAll('.kanban-card:not(.dragging)')];
+                const targetIdx = cards.indexOf(targetCard);
+                state.papers[sourcePaperIdx].sections.splice(targetIdx, 0, movingSection);
+            } else {
+                state.papers[sourcePaperIdx].sections.push(movingSection);
+            }
+            saveToLocalStorage();
+            renderDashboard();
+        });
+
         paper.sections.forEach((section, sIdx) => {
             if (shouldShowCard(section, paper.name)) {
                 const cardEl = createCardElement(section, pIdx, sIdx);
@@ -148,27 +214,14 @@ function renderPaperColumns(container) {
         addBtn.addEventListener('click', () => createNewSection(pIdx));
         column.appendChild(addBtn);
 
-        column.addEventListener('dragstart', (e) => {
-            dragSourceColumnIdx = parseInt(column.dataset.paperIndex);
-            column.classList.add('dragging');
-            e.dataTransfer.effectAllowed = 'move';
-            e.dataTransfer.setData('text/plain', 'column:' + dragSourceColumnIdx);
-        });
-
-        column.addEventListener('dragend', () => {
-            column.classList.remove('dragging');
-            dragSourceColumnIdx = null;
-            container.querySelectorAll('.board-column').forEach(c => c.classList.remove('drag-over'));
-        });
-
         container.appendChild(column);
     });
 
     container.addEventListener('dragover', (e) => {
-        const dataType = e.dataTransfer.types.includes('text/plain') && e.dataTransfer.getData('text/plain');
-        if (!dataType || !dataType.startsWith('column:')) return;
+        if (!e.dataTransfer.types.includes('text/plain')) return;
         e.preventDefault();
         e.dataTransfer.dropEffect = 'move';
+        container.querySelectorAll('.board-column.drag-over').forEach(c => c.classList.remove('drag-over'));
         const columns = [...container.querySelectorAll('.board-column')];
         const draggedEl = columns.find(c => c.classList.contains('dragging'));
         if (!draggedEl) return;
@@ -178,9 +231,7 @@ function renderPaperColumns(container) {
             return e.clientX < rect.left + rect.width / 2;
         });
         if (afterEl) {
-            container.insertBefore(draggedEl, afterEl);
-        } else {
-            container.appendChild(draggedEl);
+            afterEl.classList.add('drag-over');
         }
     });
 
@@ -189,7 +240,13 @@ function renderPaperColumns(container) {
         if (!dataStr || !dataStr.startsWith('column:')) return;
         e.preventDefault();
         const columns = [...container.querySelectorAll('.board-column')];
-        const newOrder = columns.map(c => parseInt(c.dataset.paperIndex));
+        const draggedEl = columns.find(c => c.classList.contains('dragging'));
+        const targetEl = columns.find(c => c.classList.contains('drag-over'));
+        if (draggedEl && targetEl && draggedEl !== targetEl) {
+            container.insertBefore(draggedEl, targetEl);
+        }
+        container.querySelectorAll('.board-column.drag-over').forEach(c => c.classList.remove('drag-over'));
+        const newOrder = [...container.querySelectorAll('.board-column')].map(c => parseInt(c.dataset.paperIndex));
         state.papers = newOrder.map(idx => state.papers[idx]);
         saveToLocalStorage();
         renderDashboard();
@@ -199,8 +256,26 @@ function renderPaperColumns(container) {
 function createCardElement(section, pIdx, sIdx) {
     const card = document.createElement('div');
     card.className = 'kanban-card';
+    card.draggable = true;
     card.dataset.paperIndex = pIdx;
     card.dataset.sectionIndex = sIdx;
+
+    card.addEventListener('dragstart', (e) => {
+        card.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', JSON.stringify({
+            paperIndex: card.dataset.paperIndex,
+            sectionIndex: card.dataset.sectionIndex
+        }));
+    });
+    card.addEventListener('dragend', () => {
+        card.classList.remove('dragging');
+        document.querySelectorAll('.kanban-card.drag-target').forEach(c => {
+            c.classList.remove('drag-target');
+            c.style.boxShadow = '';
+            c.style.background = '';
+        });
+    });
 
     const urgency = getSectionUrgency(section);
     const sectionNameLower = section.name.toLowerCase();
