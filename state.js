@@ -33,25 +33,44 @@ function setArchivedItems(val) {
     else state.archivedPapers = val;
 }
 
+// ── Persistence: localStorage (fast cache) + Firestore (durable) ──
+
 function saveToLocalStorage() {
+    // Write to localStorage as a fast local cache
     localStorage.setItem('paper_tracker_data', JSON.stringify(state.papers));
     localStorage.setItem('paper_tracker_archive', JSON.stringify(state.archivedPapers));
     localStorage.setItem('grant_tracker_data', JSON.stringify(state.grants));
     localStorage.setItem('grant_tracker_archive', JSON.stringify(state.archivedGrants));
     localStorage.setItem('tracker_mode', state.mode);
+
+    // Also persist to Firestore (debounced)
+    saveAllToFirestore({
+        papers: state.papers,
+        grants: state.grants,
+        archivedPapers: state.archivedPapers,
+        archivedGrants: state.archivedGrants
+    });
 }
 
-function updateDBBadge(active) {
+function updateDBBadge(status) {
     const dot = document.querySelector('.db-status-dot');
     const text = document.getElementById('dbStatus');
-    if (active) {
+    if (status === 'cloud') {
         dot.style.backgroundColor = '#22c55e';
         dot.style.boxShadow = '0 0 8px rgba(34, 197, 94, 0.6)';
-        text.textContent = 'Local DB Active';
-    } else {
+        text.textContent = 'Cloud DB Active';
+    } else if (status === 'local') {
         dot.style.backgroundColor = '#eab308';
         dot.style.boxShadow = '0 0 8px rgba(234, 179, 8, 0.6)';
-        text.textContent = 'Local DB Sandbox';
+        text.textContent = 'Local Only';
+    } else if (status === 'unconfigured') {
+        dot.style.backgroundColor = '#ef4444';
+        dot.style.boxShadow = '0 0 8px rgba(239, 68, 68, 0.6)';
+        text.textContent = 'Firebase Not Configured';
+    } else {
+        dot.style.backgroundColor = '#6366f1';
+        dot.style.boxShadow = '0 0 8px rgba(99, 102, 241, 0.6)';
+        text.textContent = 'Connecting...';
     }
 }
 
@@ -62,7 +81,7 @@ function showConfirmation(title, message, callback) {
     document.getElementById('confirmDialog').showModal();
 }
 
-function loadModeData(mode) {
+function loadFromLocalStorage(mode) {
     const dataKey = mode === 'grants' ? 'grant_tracker_data' : 'paper_tracker_data';
     const archiveKey = mode === 'grants' ? 'grant_tracker_archive' : 'paper_tracker_archive';
     const localData = localStorage.getItem(dataKey);
@@ -81,7 +100,7 @@ function loadModeData(mode) {
             }
             return true;
         } catch (e) {
-            console.error(`Error parsing ${mode} data:`, e);
+            console.error(`Error parsing ${mode} data from localStorage:`, e);
             return false;
         }
     } else if (mode === 'grants') {
@@ -91,58 +110,64 @@ function loadModeData(mode) {
     return false;
 }
 
-function fetchSeedData() {
-    if (state.mode === 'grants') {
-        state.grants = [];
-        state.archivedGrants = [];
-        saveToLocalStorage();
-        updateDBBadge(true);
-        renderDashboard();
-        return;
+// Load from Firestore, falling back to localStorage, then empty state
+async function loadModeData(mode) {
+    // Try Firestore first
+    if (isFirebaseConfigured() && firebaseReady) {
+        const firestoreData = await loadAllFromFirestore();
+        if (firestoreData) {
+            state.papers = firestoreData.papers || [];
+            state.archivedPapers = firestoreData.archivedPapers || [];
+            state.grants = firestoreData.grants || [];
+            state.archivedGrants = firestoreData.archivedGrants || [];
+
+            // Update localStorage cache
+            localStorage.setItem('paper_tracker_data', JSON.stringify(state.papers));
+            localStorage.setItem('paper_tracker_archive', JSON.stringify(state.archivedPapers));
+            localStorage.setItem('grant_tracker_data', JSON.stringify(state.grants));
+            localStorage.setItem('grant_tracker_archive', JSON.stringify(state.archivedGrants));
+
+            updateDBBadge('cloud');
+            return true;
+        }
     }
 
-    return fetch('data.json')
-        .then(response => {
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-            return response.json();
-        })
-        .then(data => {
-            state.papers = data.papers || [];
-            state.archivedPapers = [];
-            saveToLocalStorage();
-            updateDBBadge(true);
-            renderDashboard();
-        })
-        .catch(e => {
-            console.error("Failed to fetch seed data.json:", e);
-            state.archivedPapers = [];
-            state.papers = [
-                {
-                    name: "Example Paper 1",
-                    sections: [
-                        { name: "Abstract", date_last_reviewed: getTodayString(), notes: "Initial draft done." },
-                        { name: "Introduction", date_last_reviewed: "2026-06-25", notes: "Needs major edits." },
-                        { name: "Deadline", date_last_reviewed: "2026-07-20", notes: "Submit version." }
-                    ]
-                }
-            ];
-            saveToLocalStorage();
-            updateDBBadge(false);
-            renderDashboard();
-        });
+    // Fall back to localStorage
+    const loaded = loadFromLocalStorage(mode);
+    if (loaded) {
+        updateDBBadge(isFirebaseConfigured() ? 'local' : 'unconfigured');
+        return true;
+    }
+
+    // No data anywhere — start empty
+    if (mode === 'papers') {
+        state.papers = [];
+        state.archivedPapers = [];
+    } else {
+        state.grants = [];
+        state.archivedGrants = [];
+    }
+    updateDBBadge(isFirebaseConfigured() ? 'local' : 'unconfigured');
+    return false;
 }
 
 function switchMode(mode) {
     saveToLocalStorage();
     state.mode = mode;
     localStorage.setItem('tracker_mode', mode);
-    const loaded = loadModeData(mode);
+    // For mode switch, just use localStorage since Firestore already has all data
+    const loaded = loadFromLocalStorage(mode);
     if (!loaded) {
-        fetchSeedData();
-    } else {
-        updateDBBadge(true);
-        renderDashboard();
+        if (mode === 'papers') {
+            state.papers = [];
+            state.archivedPapers = [];
+        } else {
+            state.grants = [];
+            state.archivedGrants = [];
+        }
     }
+    updateDBBadge(firebaseReady && isFirebaseConfigured() ? 'cloud' : 'local');
+    renderDashboard();
     updateModeUI();
 }
 

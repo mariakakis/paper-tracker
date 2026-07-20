@@ -6,14 +6,16 @@ async function initApp() {
     setupEventListeners();
     loadTheme();
 
-    state.mode = localStorage.getItem('tracker_mode') || 'papers';
-    const loaded = loadModeData(state.mode);
-    if (!loaded) {
-        await fetchSeedData();
+    // Initialize Firebase if configured
+    if (isFirebaseConfigured()) {
+        initFirebase();
     } else {
-        updateDBBadge(true);
-        renderDashboard();
+        console.warn('[App] Firebase not configured — using localStorage only. See walkthrough for setup instructions.');
     }
+
+    state.mode = localStorage.getItem('tracker_mode') || 'papers';
+    const loaded = await loadModeData(state.mode);
+    renderDashboard();
     updateModeUI();
 }
 
