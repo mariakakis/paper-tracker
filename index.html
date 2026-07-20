@@ -92,7 +92,7 @@
                 <div class="form-body">
                     <div class="form-group">
                         <label for="editSectionName">Section Name</label>
-                        <input type="text" id="editSectionName" autocomplete="off" required placeholder="e.g. Introduction">
+                        <input type="text" id="editSectionName" autocomplete="off" list="sectionNames" required placeholder="e.g. Introduction">
                     </div>
                 </div>
 
@@ -178,6 +178,21 @@
     <script src="calendar.js"></script>
     <script src="ui.js"></script>
     <script src="app.js"></script>
+
+    <datalist id="sectionNames">
+        <option value="Abstract">
+        <option value="Introduction">
+        <option value="Related Work">
+        <option value="Methods">
+        <option value="Implementation">
+        <option value="Dataset">
+        <option value="Results">
+        <option value="Evaluation">
+        <option value="Discussion">
+        <option value="Conclusion">
+        <option value="Objectives">
+        <option value="Appendix">
+    </datalist>
 </body>
 
 </html>

@@ -331,7 +331,7 @@ function createCardElement(section, pIdx, sIdx) {
         getItems()[pIdx].sections[sIdx].name = newName;
         saveToLocalStorage();
         renderDashboard();
-    });
+    }, 'sectionNames');
     headerRow.appendChild(title);
     card.appendChild(headerRow);
 
@@ -425,13 +425,14 @@ function createCardActions(pIdx, sIdx) {
     return group;
 }
 
-function enableInlineEdit(el, onSave) {
+function enableInlineEdit(el, onSave, datalistId) {
     el.style.cursor = 'pointer';
     el.addEventListener('dblclick', () => {
         const currentText = el.textContent;
         const input = document.createElement('input');
         input.type = 'text';
         input.autocomplete = 'off';
+        if (datalistId) input.setAttribute('list', datalistId);
         input.value = currentText;
         input.className = 'inline-edit-input';
         input.style.width = Math.max(currentText.length * 0.8 + 2, 4) + 'rem';
