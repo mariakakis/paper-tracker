@@ -758,7 +758,15 @@ function showArchiveModal() {
         empty.textContent = state.mode === 'grants' ? 'No archived grants.' : 'No archived papers.';
         body.appendChild(empty);
     } else {
-        getArchivedItems().forEach((paper, idx) => {
+        const sortedArchived = [...getArchivedItems()].sort((a, b) => {
+            if (!a.deadline_date && !b.deadline_date) return a.name.localeCompare(b.name);
+            if (!a.deadline_date) return 1;
+            if (!b.deadline_date) return -1;
+            const cmp = a.deadline_date.localeCompare(b.deadline_date);
+            if (cmp !== 0) return cmp;
+            return a.name.localeCompare(b.name);
+        });
+        sortedArchived.forEach((paper, idx) => {
             const row = document.createElement('div');
             row.className = 'archive-row';
 
