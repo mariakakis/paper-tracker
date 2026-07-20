@@ -865,7 +865,7 @@ function enableGhostAutocomplete(input, suggestions) {
             s.toLowerCase().startsWith(val.toLowerCase()) && s.length > val.length
         );
         if (match) {
-            hint.textContent = match.slice(val.length);
+            hint.textContent = match;
             currentHint = match;
         } else {
             hint.textContent = '';
