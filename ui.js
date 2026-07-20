@@ -431,6 +431,7 @@ function enableInlineEdit(el, onSave) {
         const currentText = el.textContent;
         const input = document.createElement('input');
         input.type = 'text';
+        input.autocomplete = 'off';
         input.value = currentText;
         input.className = 'inline-edit-input';
         input.style.width = Math.max(currentText.length * 0.8 + 2, 4) + 'rem';
