@@ -13,12 +13,12 @@
 // TODO: Replace with your Firebase project config
 // Get this from: Firebase Console > Project Settings > Your apps > Config
 const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_PROJECT_ID.firebasestorage.app",
-    messagingSenderId: "YOUR_SENDER_ID",
-    appId: "YOUR_APP_ID"
+    apiKey: "AIzaSyBATeyImkBE4yFTOAiAvOquymtxl_RXRec",
+    authDomain: "paper-tracker-99293.firebaseapp.com",
+    projectId: "paper-tracker-99293",
+    storageBucket: "paper-tracker-99293.firebasestorage.app",
+    messagingSenderId: "188411625744",
+    appId: "1:188411625744:web:b2c580af9731af2d72a595"
 };
 
 // ── Initialize Firebase ──────────────────────────────────────────
@@ -127,5 +127,5 @@ async function _doFirestoreSave(stateData) {
 // ── Connection check ─────────────────────────────────────────────
 function isFirebaseConfigured() {
     return firebaseConfig.apiKey !== 'YOUR_API_KEY' &&
-           firebaseConfig.projectId !== 'YOUR_PROJECT_ID';
+        firebaseConfig.projectId !== 'YOUR_PROJECT_ID';
 }
