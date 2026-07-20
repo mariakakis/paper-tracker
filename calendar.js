@@ -162,7 +162,7 @@ function showCalendarView() {
     const currentYear = now.getFullYear();
 
     const deadlineMap = {};
-    state.papers.forEach(p => {
+    getItems().forEach(p => {
         if (!p.deadline_date) return;
         if (!deadlineMap[p.deadline_date]) deadlineMap[p.deadline_date] = [];
         deadlineMap[p.deadline_date].push(p.name);

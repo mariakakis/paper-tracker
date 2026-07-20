@@ -150,7 +150,13 @@ body {
     flex-wrap: wrap;
 }
 
-.header-divider {
+.toolbar-section {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.toolbar-divider {
     width: 1px;
     height: 1.5rem;
     background: var(--border-color);
@@ -161,7 +167,7 @@ body {
     background: var(--bg-container);
     border: 1px solid var(--border-color);
     color: var(--text-secondary);
-    padding: 0.6rem;
+    padding: 0.55rem;
     border-radius: var(--radius-md);
     cursor: pointer;
     display: grid;
@@ -197,6 +203,31 @@ body.light-theme .moon-icon { display: block; }
     font-size: 0.8rem;
     color: var(--text-secondary);
     font-weight: 500;
+}
+
+.mode-toggle {
+    display: flex;
+    background: var(--bg-input);
+    border: 1px solid var(--border-color);
+    border-radius: 999px;
+    padding: 2px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.mode-option {
+    padding: 0.35rem 0.8rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border-radius: 999px;
+    transition: var(--transition-quick);
+    color: var(--text-secondary);
+}
+
+.mode-option.active {
+    background: var(--brand-primary);
+    color: var(--text-inverse);
+    box-shadow: 0 2px 6px var(--brand-primary-glow);
 }
 
 .db-status-dot {

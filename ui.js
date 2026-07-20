@@ -17,7 +17,7 @@ function renderDashboard() {
 }
 
 function renderPaperColumns(container) {
-    state.papers.forEach((paper, pIdx) => {
+    getItems().forEach((paper, pIdx) => {
         const column = createColumnElement(paper, pIdx);
         container.appendChild(column);
     });
@@ -54,7 +54,7 @@ function createColumnWithSubheader(paper, pIdx) {
     title.textContent = paper.name;
     title.title = paper.name;
     enableInlineEdit(title, (newName) => {
-        state.papers[pIdx].name = newName;
+        getItems()[pIdx].name = newName;
         saveToLocalStorage();
         renderDashboard();
     });
@@ -82,7 +82,7 @@ function createColumnWithSubheader(paper, pIdx) {
 }
 
 function createPaperNoteButton(pIdx) {
-    const paper = state.papers[pIdx];
+    const paper = getItems()[pIdx];
     const btn = document.createElement('button');
     btn.className = 'card-action-btn note-btn';
     btn.title = paper.notes || 'Paper notes';
@@ -235,14 +235,14 @@ function setupCardsDragDrop(cardsContainer) {
         const targetCard = cardsContainer.querySelector('.kanban-card.drag-target');
         clearDragTargets(cardsContainer);
 
-        const movingSection = state.papers[sourcePaperIdx].sections.splice(sourceSectionIdx, 1)[0];
+        const movingSection = getItems()[sourcePaperIdx].sections.splice(sourceSectionIdx, 1)[0];
 
         if (targetCard) {
             const cards = [...cardsContainer.querySelectorAll('.kanban-card:not(.dragging)')];
             const targetIdx = cards.indexOf(targetCard);
-            state.papers[sourcePaperIdx].sections.splice(targetIdx, 0, movingSection);
+            getItems()[sourcePaperIdx].sections.splice(targetIdx, 0, movingSection);
         } else {
-            state.papers[sourcePaperIdx].sections.push(movingSection);
+            getItems()[sourcePaperIdx].sections.push(movingSection);
         }
         saveToLocalStorage();
         renderDashboard();
@@ -286,7 +286,7 @@ function setupColumnDragDrop(container) {
         }
         container.querySelectorAll('.board-column.drag-over').forEach(c => c.classList.remove('drag-over'));
         const newOrder = [...container.querySelectorAll('.board-column')].map(c => parseInt(c.dataset.paperIndex));
-        state.papers = newOrder.map(idx => state.papers[idx]);
+        setItems(newOrder.map(idx => getItems()[idx]));
         saveToLocalStorage();
         renderDashboard();
     });
@@ -328,7 +328,7 @@ function createCardElement(section, pIdx, sIdx) {
     title.className = 'card-title';
     title.textContent = section.name;
     enableInlineEdit(title, (newName) => {
-        state.papers[pIdx].sections[sIdx].name = newName;
+        getItems()[pIdx].sections[sIdx].name = newName;
         saveToLocalStorage();
         renderDashboard();
     });
@@ -407,7 +407,7 @@ function createCardActions(pIdx, sIdx) {
 
     const noteBtn = document.createElement('button');
     noteBtn.className = 'card-action-btn note-btn';
-    const section = state.papers[pIdx].sections[sIdx];
+    const section = getItems()[pIdx].sections[sIdx];
     noteBtn.title = section.notes || 'Add a note';
     noteBtn.innerHTML = ICONS.edit;
     if (section.notes) {
@@ -528,8 +528,8 @@ function createNoteEditorOverlay(titleText, initialNotes, placeholder, onSave, o
 }
 
 function openNoteEditor(pIdx, sIdx) {
-    const section = state.papers[pIdx].sections[sIdx];
-    const titleText = `Notes: ${state.papers[pIdx].name} > ${section.name}`;
+    const section = getItems()[pIdx].sections[sIdx];
+    const titleText = `Notes: ${getItems()[pIdx].name} > ${section.name}`;
     createNoteEditorOverlay(
         titleText,
         section.notes,
@@ -547,7 +547,7 @@ function openNoteEditor(pIdx, sIdx) {
 }
 
 function openPaperNoteEditor(pIdx) {
-    const paper = state.papers[pIdx];
+    const paper = getItems()[pIdx];
     const titleText = `Notes: ${paper.name}`;
     createNoteEditorOverlay(
         titleText,
@@ -569,7 +569,7 @@ function openCardEditor(pIdx, sIdx) {
     editingCard.paperIndex = pIdx;
     editingCard.sectionIndex = sIdx;
 
-    const paper = state.papers[pIdx];
+    const paper = getItems()[pIdx];
     const isNew = editingCard.isNew;
     const section = isNew ? null : paper.sections[sIdx];
 
@@ -590,9 +590,9 @@ function saveCardEdits() {
     const name = document.getElementById('editSectionName').value.trim();
 
     if (editingCard.isNew) {
-        const sIdx = state.papers[pIdx].sections.length;
+        const sIdx = getItems()[pIdx].sections.length;
         editingCard.sectionIndex = sIdx;
-        state.papers[pIdx].sections.push({
+        getItems()[pIdx].sections.push({
             name,
             date_last_reviewed: null,
             notes: ""
@@ -600,7 +600,7 @@ function saveCardEdits() {
     } else {
         const sIdx = editingCard.sectionIndex;
         if (sIdx === null) return;
-        state.papers[pIdx].sections[sIdx].name = name;
+        getItems()[pIdx].sections[sIdx].name = name;
     }
 
     editingCard.isNew = false;
@@ -614,13 +614,13 @@ function savePaperEdits() {
     const deadline = document.getElementById('editPaperDeadlineDate').value || null;
 
     if (editingPaperIndex === null) {
-        state.papers.push({
+        getItems().push({
             name,
             deadline_date: deadline,
             sections: []
         });
     } else {
-        const paper = state.papers[editingPaperIndex];
+        const paper = getItems()[editingPaperIndex];
         paper.name = name;
         paper.deadline_date = deadline;
     }
@@ -638,7 +638,7 @@ function addNewPaper() {
 }
 
 function quickReviewToday(pIdx, sIdx, btnEl) {
-    const section = state.papers[pIdx].sections[sIdx];
+    const section = getItems()[pIdx].sections[sIdx];
     section.date_last_reviewed = getTodayString();
     saveToLocalStorage();
 
@@ -655,8 +655,8 @@ function createNewSection(pIdx) {
 
 function triggerDeleteConfirmation(pIdx, sIdx) {
     if (pIdx === null || sIdx === null) return;
-    const sectionName = state.papers[pIdx].sections[sIdx].name;
-    const paperName = state.papers[pIdx].name;
+    const sectionName = getItems()[pIdx].sections[sIdx].name;
+    const paperName = getItems()[pIdx].name;
 
     document.getElementById('cardModal').close();
 
@@ -664,7 +664,7 @@ function triggerDeleteConfirmation(pIdx, sIdx) {
         "Delete Section?",
         `Are you sure you want to delete "${sectionName}" from "${paperName}"?`,
         () => {
-            state.papers[pIdx].sections.splice(sIdx, 1);
+            getItems()[pIdx].sections.splice(sIdx, 1);
             saveToLocalStorage();
             renderDashboard();
         }
@@ -673,7 +673,7 @@ function triggerDeleteConfirmation(pIdx, sIdx) {
 
 function triggerDeletePaperConfirmation(pIdx) {
     if (pIdx === null) return;
-    const paperName = state.papers[pIdx].name;
+    const paperName = getItems()[pIdx].name;
 
     document.getElementById('paperModal').close();
 
@@ -681,7 +681,7 @@ function triggerDeletePaperConfirmation(pIdx) {
         'Delete Paper?',
         `Are you sure you want to delete "${paperName}" and all its sections? This cannot be undone.`,
         () => {
-            state.papers.splice(pIdx, 1);
+            getItems().splice(pIdx, 1);
             saveToLocalStorage();
             renderDashboard();
         }
@@ -690,15 +690,14 @@ function triggerDeletePaperConfirmation(pIdx) {
 
 function archivePaper(pIdx) {
     if (pIdx === null || pIdx === undefined) return;
-    const paper = state.papers[pIdx];
+    const paper = getItems()[pIdx];
     if (!paper) return;
     showConfirmation(
         'Archive Paper?',
         `Move "${paper.name}" to the archive?`,
         () => {
-            if (!state.archivedPapers) state.archivedPapers = [];
-            state.archivedPapers.push(JSON.parse(JSON.stringify(state.papers[pIdx])));
-            state.papers.splice(pIdx, 1);
+            getArchivedItems().push(JSON.parse(JSON.stringify(getItems()[pIdx])));
+            getItems().splice(pIdx, 1);
             saveToLocalStorage();
             renderDashboard();
         }
@@ -708,19 +707,17 @@ function archivePaper(pIdx) {
 function updateArchiveBadge() {
     const archiveBadge = document.getElementById('archiveCount');
     if (archiveBadge) {
-        const count = (state.archivedPapers || []).length;
+        const count = (getArchivedItems() || []).length;
         archiveBadge.textContent = count > 0 ? count : '';
     }
     const deadlineBadge = document.getElementById('deadlineCount');
     if (deadlineBadge) {
-        const count = state.papers.filter(p => p.deadline_date).length;
+        const count = getItems().filter(p => p.deadline_date).length;
         deadlineBadge.textContent = count > 0 ? count : '';
     }
 }
 
 function showArchiveModal() {
-    if (!state.archivedPapers) state.archivedPapers = [];
-
     const existing = document.getElementById('archiveModal');
     if (existing) {
         existing.showModal();
@@ -739,7 +736,7 @@ function showArchiveModal() {
     const titleArea = document.createElement('div');
     titleArea.className = 'modal-title-area';
     const title = document.createElement('h2');
-    title.textContent = 'Archived Papers';
+    title.textContent = state.mode === 'grants' ? 'Archived Grants' : 'Archived Papers';
     titleArea.appendChild(title);
 
     const closeBtn = document.createElement('button');
@@ -754,14 +751,14 @@ function showArchiveModal() {
     const body = document.createElement('div');
     body.style.padding = '1rem';
 
-    if (state.archivedPapers.length === 0) {
+    if (getArchivedItems().length === 0) {
         const empty = document.createElement('p');
         empty.style.color = 'var(--text-muted)';
         empty.style.textAlign = 'center';
-        empty.textContent = 'No archived papers.';
+        empty.textContent = state.mode === 'grants' ? 'No archived grants.' : 'No archived papers.';
         body.appendChild(empty);
     } else {
-        state.archivedPapers.forEach((paper, idx) => {
+        getArchivedItems().forEach((paper, idx) => {
             const row = document.createElement('div');
             row.className = 'archive-row';
 
@@ -777,8 +774,8 @@ function showArchiveModal() {
             restoreBtn.className = 'modal-btn primary';
             restoreBtn.textContent = 'Restore';
             restoreBtn.addEventListener('click', () => {
-                state.papers.push(JSON.parse(JSON.stringify(paper)));
-                state.archivedPapers.splice(idx, 1);
+                getItems().push(JSON.parse(JSON.stringify(paper)));
+                getArchivedItems().splice(idx, 1);
                 saveToLocalStorage();
                 dialog.close();
                 renderDashboard();

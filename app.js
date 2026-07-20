@@ -6,27 +6,26 @@ async function initApp() {
     setupEventListeners();
     loadTheme();
 
-    const localData = localStorage.getItem('paper_tracker_data');
-    const localArchive = localStorage.getItem('paper_tracker_archive');
-    if (localData) {
-        try {
-            state.papers = JSON.parse(localData);
-            if (localArchive) {
-                state.archivedPapers = JSON.parse(localArchive);
-            }
-            updateDBBadge(true);
-            renderDashboard();
-        } catch (e) {
-            console.error("Error parsing local database:", e);
-            await fetchSeedData();
-        }
-    } else {
+    state.mode = localStorage.getItem('tracker_mode') || 'papers';
+    const loaded = loadModeData(state.mode);
+    if (!loaded) {
         await fetchSeedData();
+    } else {
+        updateDBBadge(true);
+        renderDashboard();
     }
+    updateModeUI();
 }
 
 function setupEventListeners() {
     document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+
+    document.getElementById('modeToggle').addEventListener('click', (e) => {
+        const option = e.target.closest('.mode-option');
+        if (!option) return;
+        const newMode = option.dataset.mode;
+        if (newMode !== state.mode) switchMode(newMode);
+    });
 
     document.getElementById('calendarViewBtn').addEventListener('click', showCalendarView);
     document.getElementById('closeCalendarBtn').addEventListener('click', () => {
@@ -45,7 +44,6 @@ function setupEventListeners() {
     document.getElementById('archiveBtn').addEventListener('click', showArchiveModal);
 
     document.getElementById('addPaperBtn').addEventListener('click', addNewPaper);
-    document.getElementById('resetExcelBtn').addEventListener('click', triggerResetConfirmation);
 
     const paperModal = document.getElementById('paperModal');
     document.getElementById('cancelPaperModalBtn').addEventListener('click', () => paperModal.close());
@@ -116,7 +114,8 @@ function loadTheme() {
 }
 
 function sortByDeadline() {
-    state.papers.sort((a, b) => {
+    const items = getItems();
+    items.sort((a, b) => {
         if (!a.deadline_date && !b.deadline_date) return a.name.localeCompare(b.name);
         if (!a.deadline_date) return 1;
         if (!b.deadline_date) return -1;
@@ -126,15 +125,4 @@ function sortByDeadline() {
     });
     saveToLocalStorage();
     renderDashboard();
-}
-
-function triggerResetConfirmation() {
-    showConfirmation(
-        "Reset to Excel data?",
-        "This will discard all your local edits and notes in the browser, resetting the board to the values in the original Work Tracker spreadsheet.",
-        async () => {
-            localStorage.removeItem('paper_tracker_data');
-            await fetchSeedData();
-        }
-    );
 }
