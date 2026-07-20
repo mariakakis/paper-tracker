@@ -331,7 +331,7 @@ function createCardElement(section, pIdx, sIdx) {
         getItems()[pIdx].sections[sIdx].name = newName;
         saveToLocalStorage();
         renderDashboard();
-    }, 'sectionNames');
+    }, SECTION_SUGGESTIONS);
     headerRow.appendChild(title);
     card.appendChild(headerRow);
 
@@ -425,14 +425,13 @@ function createCardActions(pIdx, sIdx) {
     return group;
 }
 
-function enableInlineEdit(el, onSave, datalistId) {
+function enableInlineEdit(el, onSave, suggestions) {
     el.style.cursor = 'pointer';
     el.addEventListener('dblclick', () => {
         const currentText = el.textContent;
         const input = document.createElement('input');
         input.type = 'text';
         input.autocomplete = 'off';
-        if (datalistId) input.setAttribute('list', datalistId);
         input.value = currentText;
         input.className = 'inline-edit-input';
         input.style.width = Math.max(currentText.length * 0.8 + 2, 4) + 'rem';
@@ -441,10 +440,22 @@ function enableInlineEdit(el, onSave, datalistId) {
         input.focus();
         input.select();
 
+        let hintCleanup = null;
+        if (suggestions) {
+            const wrapper = enableGhostAutocomplete(input, suggestions);
+            input.focus();
+            input.select();
+            hintCleanup = wrapper;
+        }
+
         const finish = () => {
             const newVal = input.value.trim() || currentText;
             onSave(newVal);
-            input.replaceWith(el);
+            if (hintCleanup) {
+                input.parentNode.replaceWith(el);
+            } else {
+                input.replaceWith(el);
+            }
         };
 
         input.addEventListener('blur', finish);
@@ -807,4 +818,74 @@ function showArchiveModal() {
 
     document.body.appendChild(dialog);
     dialog.showModal();
+}
+
+const SECTION_SUGGESTIONS = [
+    'Abstract', 'Introduction', 'Related Work', 'Methods',
+    'Implementation', 'Dataset', 'Results', 'Evaluation',
+    'Discussion', 'Conclusion', 'Objectives', 'Appendix'
+];
+
+function enableGhostAutocomplete(input, suggestions) {
+    let currentHint = '';
+
+    const wrapper = document.createElement('span');
+    wrapper.className = 'ghost-autocomplete-wrapper';
+
+    const parent = input.parentNode;
+    parent.insertBefore(wrapper, input);
+    wrapper.appendChild(input);
+
+    const hint = document.createElement('span');
+    hint.className = 'ghost-autocomplete-hint';
+    wrapper.appendChild(hint);
+
+    const cs = window.getComputedStyle(input);
+    hint.style.paddingLeft = cs.paddingLeft;
+    hint.style.paddingTop = cs.paddingTop;
+    hint.style.paddingRight = cs.paddingRight;
+    hint.style.paddingBottom = cs.paddingBottom;
+    hint.style.fontSize = cs.fontSize;
+    hint.style.fontFamily = cs.fontFamily;
+    hint.style.lineHeight = cs.lineHeight;
+    hint.style.letterSpacing = cs.letterSpacing;
+
+    wrapper.style.background = cs.background;
+    wrapper.style.border = cs.border;
+    wrapper.style.borderRadius = cs.borderRadius;
+
+    input.addEventListener('input', () => {
+        const val = input.value;
+        if (!val) {
+            hint.textContent = '';
+            currentHint = '';
+            return;
+        }
+        const match = suggestions.find(s =>
+            s.toLowerCase().startsWith(val.toLowerCase()) && s.length > val.length
+        );
+        if (match) {
+            hint.textContent = match.slice(val.length);
+            currentHint = match;
+        } else {
+            hint.textContent = '';
+            currentHint = '';
+        }
+    });
+
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Tab' && currentHint) {
+            e.preventDefault();
+            input.value = currentHint;
+            hint.textContent = '';
+            currentHint = '';
+        }
+    });
+
+    return wrapper;
+}
+
+const sectionNameInput = document.getElementById('editSectionName');
+if (sectionNameInput) {
+    enableGhostAutocomplete(sectionNameInput, SECTION_SUGGESTIONS);
 }

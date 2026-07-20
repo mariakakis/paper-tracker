@@ -956,6 +956,33 @@ body.light-theme .moon-icon { display: block; }
     box-shadow: 0 0 0 2px var(--brand-primary-glow);
 }
 
+.ghost-autocomplete-wrapper {
+    position: relative;
+    display: block;
+}
+
+.ghost-autocomplete-wrapper input {
+    position: relative;
+    z-index: 2;
+    background: transparent !important;
+}
+
+.ghost-autocomplete-hint {
+    position: absolute;
+    left: 0;
+    top: 0;
+    pointer-events: none;
+    color: var(--text-muted);
+    opacity: 0.45;
+    white-space: nowrap;
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    z-index: 1;
+    text-align: left;
+}
+
 .wide-modal {
     max-width: 1200px;
     width: 95vw;
