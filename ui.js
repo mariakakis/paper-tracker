@@ -791,12 +791,13 @@ function showArchiveModal() {
             deadline.className = 'archive-row-deadline';
             deadline.textContent = paper.deadline_date ? formatDisplayDate(paper.deadline_date) : 'No deadline';
 
+            const actualIdx = getArchivedItems().findIndex(p => p.name === paper.name);
             const restoreBtn = document.createElement('button');
             restoreBtn.className = 'modal-btn primary';
             restoreBtn.textContent = 'Restore';
             restoreBtn.addEventListener('click', () => {
                 getItems().push(JSON.parse(JSON.stringify(paper)));
-                getArchivedItems().splice(idx, 1);
+                getArchivedItems().splice(actualIdx, 1);
                 saveToLocalStorage();
                 dialog.close();
                 renderDashboard();
@@ -823,7 +824,7 @@ function showArchiveModal() {
 const SECTION_SUGGESTIONS = [
     'Abstract', 'Introduction', 'Related Work', 'Methods',
     'Implementation', 'Dataset', 'Results', 'Evaluation',
-    'Discussion', 'Conclusion', 'Objectives', 'Appendix'
+    'Discussion', 'Conclusion', 'Findings', 'Objectives', 'Appendix'
 ];
 
 function enableGhostAutocomplete(input, suggestions) {
