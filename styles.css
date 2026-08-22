@@ -391,28 +391,11 @@ body.light-theme .moon-icon { display: block; }
 .status-dot-green { background: #22c55e; }
 .status-dot-gray { background: #64748b; }
 
-.add-card-btn {
-    width: 100%;
-    background: transparent;
-    border: none;
-    border-top: 1px solid var(--border-color);
-    color: var(--text-secondary);
-    padding: 0.8rem;
-    font-size: 0.85rem;
-    font-weight: 500;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.4rem;
-    transition: var(--transition-quick);
-    border-bottom-left-radius: var(--radius-lg);
-    border-bottom-right-radius: var(--radius-lg);
-}
-
 .add-card-btn:hover {
-    background: rgba(129, 140, 248, 0.05);
+    background: rgba(129, 140, 248, 0.15);
+    border-color: rgba(129, 140, 248, 0.4);
     color: var(--brand-primary);
+    transform: scale(1.1);
 }
 
 .column-cards {

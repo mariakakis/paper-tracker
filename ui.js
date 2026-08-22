@@ -34,11 +34,7 @@ function createColumnElement(paper, pIdx) {
     const cardsContainer = createCardsContainer(paper, pIdx);
     column.appendChild(cardsContainer);
 
-    const addBtn = document.createElement('button');
-    addBtn.className = 'add-card-btn';
-    addBtn.innerHTML = ICONS.add + ' Add Section';
-    addBtn.addEventListener('click', () => createNewSection(pIdx));
-    column.appendChild(addBtn);
+
 
     return column;
 }
@@ -61,6 +57,13 @@ function createColumnWithSubheader(paper, pIdx) {
 
     const headerActions = document.createElement('div');
     headerActions.className = 'column-header-actions';
+
+    const addBtn = document.createElement('button');
+    addBtn.className = 'card-action-btn add-card-btn';
+    addBtn.innerHTML = ICONS.add;
+    addBtn.title = 'Add Section';
+    addBtn.addEventListener('click', () => createNewSection(pIdx));
+    headerActions.appendChild(addBtn);
 
     const noteBtn = createPaperNoteButton(pIdx);
     headerActions.appendChild(noteBtn);
