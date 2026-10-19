@@ -10,9 +10,35 @@ const ICONS = {
 
 function renderDashboard() {
     const container = document.getElementById('boardContainer');
+    if (!container) return;
     container.innerHTML = '';
     container.className = 'board-grid paper-columns-layout';
-    renderPaperColumns(container);
+
+    if (!state.currentUser) {
+        updateArchiveBadge();
+        return;
+    }
+
+    const items = getItems();
+    if (items.length === 0) {
+        const emptyState = document.createElement('div');
+        emptyState.className = 'empty-board-state';
+        const isGrants = state.mode === 'grants';
+        emptyState.innerHTML = `
+            <div class="empty-state-content">
+                <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" style="color: var(--brand-primary); opacity: 0.8;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="11" x2="12" y2="17"></line><line x1="9" y1="14" x2="15" y2="14"></line></svg>
+                <h3>No ${isGrants ? 'grants' : 'papers'} yet</h3>
+                <p>Start tracking your writing progress and deadlines.</p>
+                <button id="emptyAddBtn" class="action-btn secondary">
+                    ${isGrants ? '+ Add Grant' : '+ Add Paper'}
+                </button>
+            </div>
+        `;
+        container.appendChild(emptyState);
+        emptyState.querySelector('#emptyAddBtn').addEventListener('click', addNewPaper);
+    } else {
+        renderPaperColumns(container);
+    }
     updateArchiveBadge();
 }
 
@@ -723,12 +749,12 @@ function archivePaper(pIdx) {
 function updateArchiveBadge() {
     const archiveBadge = document.getElementById('archiveCount');
     if (archiveBadge) {
-        const count = (getArchivedItems() || []).length;
+        const count = state.currentUser ? (getArchivedItems() || []).length : 0;
         archiveBadge.textContent = count > 0 ? count : '';
     }
     const deadlineBadge = document.getElementById('deadlineCount');
     if (deadlineBadge) {
-        const count = getItems().filter(p => p.deadline_date).length;
+        const count = state.currentUser ? getItems().filter(p => p.deadline_date).length : 0;
         deadlineBadge.textContent = count > 0 ? count : '';
     }
 }

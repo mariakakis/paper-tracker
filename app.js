@@ -6,20 +6,166 @@ async function initApp() {
     setupEventListeners();
     loadTheme();
 
-    // Initialize Firebase if configured
+    state.mode = localStorage.getItem('tracker_mode') || 'papers';
+
+    // Initialize Firebase and observe Auth state
     if (isFirebaseConfigured()) {
         initFirebase();
+        updateDBBadge('checking');
+
+        onAuthChange(async (user) => {
+            if (user) {
+                console.log('[Auth] User signed in:', user.email);
+                state.currentUser = user;
+                updateAuthUI(user);
+                await loadModeData(state.mode);
+                renderDashboard();
+                updateModeUI();
+            } else {
+                console.log('[Auth] User signed out');
+                state.currentUser = null;
+                // Close any open modals
+                ['cardModal', 'paperModal', 'confirmDialog', 'calendarModal', 'archiveModal'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el && typeof el.close === 'function' && el.open) {
+                        el.close();
+                    }
+                });
+                state.papers = [];
+                state.grants = [];
+                state.archivedPapers = [];
+                state.archivedGrants = [];
+                updateAuthUI(null);
+                renderDashboard();
+                updateDBBadge('signed_out');
+            }
+        });
     } else {
-        console.warn('[App] Firebase not configured — using localStorage only. See walkthrough for setup instructions.');
+        console.warn('[App] Firebase not configured — please check firebaseConfig in firebase-config.js');
+        updateDBBadge('unconfigured');
+        updateAuthUI(null);
+        renderDashboard();
+    }
+}
+
+function updateAuthUI(user) {
+    const headerSignInBtn = document.getElementById('googleSignInHeaderBtn');
+    const userProfile = document.getElementById('userProfile');
+    const userAvatar = document.getElementById('userAvatar');
+    const userName = document.getElementById('userName');
+    const boardControls = document.querySelectorAll('.board-controls');
+    const authLanding = document.getElementById('authLanding');
+    const boardContainer = document.getElementById('boardContainer');
+
+    if (user) {
+        if (headerSignInBtn) headerSignInBtn.style.display = 'none';
+        if (userProfile) {
+            userProfile.style.display = 'flex';
+            if (userName) userName.textContent = user.displayName || user.email || 'User';
+            if (userAvatar) {
+                if (user.photoURL) {
+                    userAvatar.src = user.photoURL;
+                    userAvatar.alt = user.displayName || 'Avatar';
+                    userAvatar.style.display = 'block';
+                } else {
+                    userAvatar.style.display = 'none';
+                }
+            }
+        }
+        boardControls.forEach(el => el.classList.remove('hidden'));
+        if (authLanding) authLanding.style.display = 'none';
+        if (boardContainer) boardContainer.style.display = 'flex';
+    } else {
+        if (headerSignInBtn) headerSignInBtn.style.display = 'inline-flex';
+        if (userProfile) userProfile.style.display = 'none';
+        boardControls.forEach(el => el.classList.add('hidden'));
+        if (authLanding) authLanding.style.display = 'flex';
+        if (boardContainer) boardContainer.style.display = 'none';
+    }
+}
+
+async function handleGoogleSignIn() {
+    clearAuthError();
+    setSignInLoading(true);
+    try {
+        await signInWithGoogle();
+        // onAuthChange listener handles data loading and dashboard rendering
+    } catch (error) {
+        console.error('[Google Sign-In Error]', error);
+        handleAuthError(error);
+    } finally {
+        setSignInLoading(false);
+    }
+}
+
+async function handleSignOut() {
+    try {
+        await signOutUser();
+    } catch (error) {
+        console.error('[Sign-Out Error]', error);
+    }
+}
+
+function setSignInLoading(isLoading) {
+    const heroBtn = document.getElementById('googleSignInHeroBtn');
+    const headerBtn = document.getElementById('googleSignInHeaderBtn');
+
+    if (heroBtn) {
+        const spinner = heroBtn.querySelector('.auth-btn-spinner');
+        const label = heroBtn.querySelector('.auth-btn-label');
+        if (spinner) spinner.style.display = isLoading ? 'inline-block' : 'none';
+        if (label) label.textContent = isLoading ? 'Connecting...' : 'Continue with Google';
+        heroBtn.disabled = isLoading;
+    }
+    if (headerBtn) {
+        headerBtn.disabled = isLoading;
+    }
+}
+
+function clearAuthError() {
+    const errorBox = document.getElementById('authErrorBox');
+    const errorMsg = document.getElementById('authErrorMessage');
+    if (errorBox) errorBox.style.display = 'none';
+    if (errorMsg) errorMsg.innerHTML = '';
+}
+
+function handleAuthError(error) {
+    const errorBox = document.getElementById('authErrorBox');
+    const errorMsg = document.getElementById('authErrorMessage');
+    if (!errorBox || !errorMsg) return;
+
+    if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
+        return; // User dismissed popup intentionally
     }
 
-    state.mode = localStorage.getItem('tracker_mode') || 'papers';
-    const loaded = await loadModeData(state.mode);
-    renderDashboard();
-    updateModeUI();
+    let messageHtml = '';
+    const currentHost = window.location.hostname || 'localhost';
+
+    if (error.code === 'auth/unauthorized-domain') {
+        messageHtml = `<strong>Domain not authorized:</strong> The current domain (<code>${currentHost}</code>) is not yet in your Firebase Authorized Domains.<br>To fix this, open <a href="https://console.firebase.google.com/u/0/project/paper-tracker-99293/authentication/settings" target="_blank" style="color: var(--brand-primary); text-decoration: underline;">Firebase Console &gt; Authentication &gt; Settings &gt; Authorized domains</a> and add <code>${currentHost}</code>.`;
+    } else if (error.code === 'auth/operation-not-allowed') {
+        messageHtml = `<strong>Google Sign-In is not enabled:</strong> Please enable Google as a sign-in provider in your <a href="https://console.firebase.google.com/u/0/project/paper-tracker-99293/authentication/providers" target="_blank" style="color: var(--brand-primary); text-decoration: underline;">Firebase Console &gt; Authentication &gt; Sign-in method</a>.`;
+    } else if (error.code === 'auth/popup-blocked') {
+        messageHtml = `<strong>Popup Blocked:</strong> Your browser prevented the Google Sign-In popup from opening. Please allow popups for this site and try again.`;
+    } else {
+        messageHtml = `<strong>Sign-in failed:</strong> ${error.message || 'An unexpected error occurred during Google Sign-In.'}`;
+    }
+
+    errorMsg.innerHTML = messageHtml;
+    errorBox.style.display = 'block';
 }
 
 function setupEventListeners() {
+    // Auth listeners
+    const headerSignInBtn = document.getElementById('googleSignInHeaderBtn');
+    if (headerSignInBtn) headerSignInBtn.addEventListener('click', handleGoogleSignIn);
+
+    const heroSignInBtn = document.getElementById('googleSignInHeroBtn');
+    if (heroSignInBtn) heroSignInBtn.addEventListener('click', handleGoogleSignIn);
+
+    const signOutBtn = document.getElementById('signOutBtn');
+    if (signOutBtn) signOutBtn.addEventListener('click', handleSignOut);
+
     document.getElementById('themeToggle').addEventListener('click', toggleTheme);
 
     document.getElementById('modeToggle').addEventListener('click', (e) => {
