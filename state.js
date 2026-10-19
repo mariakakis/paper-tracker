@@ -63,11 +63,7 @@ function updateDBBadge(status) {
     const text = document.getElementById('dbStatus');
     if (!dot || !text) return;
 
-    if (status === 'cloud') {
-        dot.style.backgroundColor = '#22c55e';
-        dot.style.boxShadow = '0 0 8px rgba(34, 197, 94, 0.6)';
-        text.textContent = 'Cloud Sync Active';
-    } else if (status === 'local') {
+    if (status === 'local') {
         dot.style.backgroundColor = '#eab308';
         dot.style.boxShadow = '0 0 8px rgba(234, 179, 8, 0.6)';
         text.textContent = 'Local Only';
@@ -165,7 +161,6 @@ async function loadModeData(mode) {
             localStorage.setItem(`grant_tracker_data_${uid}`, JSON.stringify(state.grants));
             localStorage.setItem(`grant_tracker_archive_${uid}`, JSON.stringify(state.archivedGrants));
 
-            updateDBBadge('cloud');
             return true;
         }
     }
@@ -204,7 +199,7 @@ function switchMode(mode) {
             state.archivedGrants = [];
         }
     }
-    updateDBBadge(firebaseReady && isFirebaseConfigured() ? 'cloud' : 'local');
+    updateDBBadge('local');
     renderDashboard();
     updateModeUI();
 }
