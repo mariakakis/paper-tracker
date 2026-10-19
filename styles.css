@@ -1462,14 +1462,14 @@ body.light-theme .hero-auth-btn:hover {
 }
 
 .auth-hero-card {
-    max-width: 780px;
+    max-width: 560px;
     width: 100%;
     background: var(--bg-card);
     backdrop-filter: blur(var(--glass-blur));
     -webkit-backdrop-filter: blur(var(--glass-blur));
     border: 1px solid var(--border-color);
     border-radius: var(--radius-xl);
-    padding: 3rem 2.5rem;
+    padding: 3rem 2.5rem 2.5rem;
     text-align: center;
     display: flex;
     flex-direction: column;
